@@ -13,59 +13,62 @@ import org.antframework.sync.core.ServerSyncWaiter;
 import org.antframework.sync.core.SyncWaiter;
 import org.antframework.sync.extension.Server;
 
-import java.util.Map;
-import java.util.Objects;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.atomic.AtomicBoolean;
-
 /**
- *
+ * 互斥锁服务端
  */
 @AllArgsConstructor
 public class MutexLockServer {
-
-    private final Map<String, String> keyLockers = new ConcurrentHashMap<>();
-
+    // 互斥资源
+    private final MutexResource mutexResource = new MutexResource();
+    // 服务端
     private final Server server;
-
+    // 最大等待时间
     private final long maxWaitTime;
 
+    /**
+     * 加锁
+     *
+     * @param key      锁标识
+     * @param lockerId 加锁者id
+     * @param deadline 截止时间
+     * @return null 加锁成功；否则失败
+     */
     public SyncWaiter lock(String key, String lockerId, long deadline) {
-        AtomicBoolean localSuccess = new AtomicBoolean(false);
-        keyLockers.compute(key, (k, v) -> {
-            if (v == null || Objects.equals(v, lockerId)) {
-                v = lockerId;
-                localSuccess.set(true);
-            }
-            return v;
-        });
         Long waitTime = maxWaitTime;
-        if (localSuccess.get()) {
+        boolean localSuccess = mutexResource.acquire(key, lockerId);
+        if (localSuccess) {
             try {
                 waitTime = server.lockForMutex(key, lockerId, deadline);
             } finally {
                 if (waitTime != null) {
-                    keyLockers.remove(key);
+                    mutexResource.release(key, lockerId);
                 }
             }
         }
+        SyncWaiter waiter = null;
         if (waitTime != null) {
             waitTime = Math.min(waitTime, maxWaitTime);
-            return new ServerSyncWaiter(server, Server.SyncType.MUTEX_LOCK, key, waitTime);
+            waiter = new ServerSyncWaiter(server, Server.SyncType.MUTEX_LOCK, key, waitTime);
         }
-        return null;
+        return waiter;
     }
 
+    /**
+     * 解锁
+     *
+     * @param key      锁标识
+     * @param lockerId 加锁者id
+     */
     public void unlock(String key, String lockerId) {
-        keyLockers.compute(key, (k, v) -> {
-            if (Objects.equals(v, lockerId)) {
-                v = null;
-            }
-            return v;
-        });
+        mutexResource.release(key, lockerId);
         server.unlockForMutex(key, lockerId);
     }
 
+    /**
+     * 删除锁的等待器
+     *
+     * @param key 锁标识
+     */
     public void removeWaiter(String key) {
         server.removeWaiter(Server.SyncType.MUTEX_LOCK, key);
     }

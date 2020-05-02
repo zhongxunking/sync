@@ -19,17 +19,18 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.Condition;
 
 /**
- *
+ * 抽象基于服务端的可重入锁
  */
 @AllArgsConstructor
 @Slf4j
 public abstract class AbstractServerReentrantLock extends AbstractReentrantLock {
-    @Getter
-    private final String lockerId;
-
+    // 锁标识
     @Getter
     private final String key;
-
+    // 加锁者id
+    @Getter
+    private final String lockerId;
+    // Sync执行器
     private final SyncExecutor syncExecutor;
 
     @Override
@@ -41,6 +42,9 @@ public abstract class AbstractServerReentrantLock extends AbstractReentrantLock 
         }
     }
 
+    /**
+     * 当trayLock方法执行结束时执行
+     */
     protected abstract void onTryLockEnd();
 
     @Override
@@ -53,6 +57,12 @@ public abstract class AbstractServerReentrantLock extends AbstractReentrantLock 
         return waiter;
     }
 
+    /**
+     * 在服务端加锁
+     *
+     * @param deadline 截止时间
+     * @return null 加锁成功；否则失败
+     */
     protected abstract SyncWaiter lockInServer(long deadline);
 
     @Override
@@ -61,6 +71,9 @@ public abstract class AbstractServerReentrantLock extends AbstractReentrantLock 
         log.debug("调用server解锁：{}", this);
     }
 
+    /**
+     * 在服务端解锁
+     */
     protected abstract void unlockInServer();
 
     @Override

@@ -13,14 +13,14 @@ import org.antframework.sync.core.SyncWaiter;
 import org.antframework.sync.lock.support.MutexLockServer;
 
 /**
- *
+ * 基于服务端的可重入互斥锁
  */
 public class ServerReentrantMutexLock extends AbstractServerReentrantLock {
-
+    // 互斥锁服务端
     private final MutexLockServer server;
 
-    public ServerReentrantMutexLock(String lockerId, String key, SyncExecutor syncExecutor, MutexLockServer server) {
-        super(lockerId, key, syncExecutor);
+    public ServerReentrantMutexLock(String key, String lockerId, SyncExecutor syncExecutor, MutexLockServer server) {
+        super(key, lockerId, syncExecutor);
         this.server = server;
     }
 
