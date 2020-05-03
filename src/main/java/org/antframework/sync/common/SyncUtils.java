@@ -6,7 +6,7 @@
  * 修订记录:
  * @author 钟勋 2020-05-03 16:50 创建
  */
-package org.antframework.sync.core;
+package org.antframework.sync.common;
 
 import org.apache.commons.lang3.exception.ExceptionUtils;
 

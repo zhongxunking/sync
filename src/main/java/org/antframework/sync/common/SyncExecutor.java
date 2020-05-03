@@ -6,7 +6,7 @@
  * 修订记录:
  * @author 钟勋 2020-04-30 15:56 创建
  */
-package org.antframework.sync.core;
+package org.antframework.sync.common;
 
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.Executor;

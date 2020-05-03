@@ -9,7 +9,7 @@
 package org.antframework.sync.lock.core;
 
 import lombok.Getter;
-import org.antframework.sync.core.SyncWaiter;
+import org.antframework.sync.common.SyncWaiter;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 
 import java.util.concurrent.TimeUnit;

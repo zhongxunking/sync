@@ -8,8 +8,8 @@
  */
 package org.antframework.sync.lock;
 
-import org.antframework.sync.core.SyncExecutor;
-import org.antframework.sync.core.SyncUtils;
+import org.antframework.sync.common.SyncExecutor;
+import org.antframework.sync.common.SyncUtils;
 import org.antframework.sync.extension.Server;
 import org.antframework.sync.lock.core.ServerReentrantMutexLock;
 import org.antframework.sync.lock.core.ServerReentrantRWLock;

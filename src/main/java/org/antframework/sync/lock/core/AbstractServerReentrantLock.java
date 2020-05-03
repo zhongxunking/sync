@@ -11,8 +11,8 @@ package org.antframework.sync.lock.core;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
-import org.antframework.sync.core.SyncExecutor;
-import org.antframework.sync.core.SyncWaiter;
+import org.antframework.sync.common.SyncExecutor;
+import org.antframework.sync.common.SyncWaiter;
 import org.antframework.sync.lock.support.LockDestroyer;
 
 import java.util.concurrent.TimeUnit;

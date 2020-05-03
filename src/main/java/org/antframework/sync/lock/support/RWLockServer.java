@@ -9,9 +9,9 @@
 package org.antframework.sync.lock.support;
 
 import lombok.AllArgsConstructor;
-import org.antframework.sync.core.ServerSyncManager;
-import org.antframework.sync.core.ServerSyncWaiter;
-import org.antframework.sync.core.SyncWaiter;
+import org.antframework.sync.common.ServerSyncManager;
+import org.antframework.sync.common.ServerSyncWaiter;
+import org.antframework.sync.common.SyncWaiter;
 import org.antframework.sync.extension.Server;
 
 import java.util.Objects;

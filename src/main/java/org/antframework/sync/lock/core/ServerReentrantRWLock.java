@@ -9,7 +9,7 @@
 package org.antframework.sync.lock.core;
 
 import lombok.Getter;
-import org.antframework.sync.core.SyncExecutor;
+import org.antframework.sync.common.SyncExecutor;
 import org.antframework.sync.lock.support.RWLockServer;
 
 import java.util.concurrent.locks.Lock;

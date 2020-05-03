@@ -6,7 +6,7 @@
  * 修订记录:
  * @author 钟勋 2020-04-30 12:31 创建
  */
-package org.antframework.sync.core;
+package org.antframework.sync.common;
 
 import lombok.AllArgsConstructor;
 
