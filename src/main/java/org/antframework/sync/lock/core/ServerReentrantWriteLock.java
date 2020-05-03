@@ -10,16 +10,16 @@ package org.antframework.sync.lock.core;
 
 import org.antframework.sync.core.SyncExecutor;
 import org.antframework.sync.core.SyncWaiter;
-import org.antframework.sync.lock.support.ReadWriteLockServer;
+import org.antframework.sync.lock.support.RWLockServer;
 
 /**
  * 基于服务端的可重入写锁
  */
 public class ServerReentrantWriteLock extends AbstractServerReentrantLock {
     // 服务端
-    private final ReadWriteLockServer server;
+    private final RWLockServer server;
 
-    public ServerReentrantWriteLock(String key, String lockerId, SyncExecutor syncExecutor, ReadWriteLockServer server) {
+    public ServerReentrantWriteLock(String key, String lockerId, SyncExecutor syncExecutor, RWLockServer server) {
         super(key, lockerId, syncExecutor);
         this.server = server;
     }

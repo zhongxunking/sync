@@ -20,7 +20,7 @@ import java.util.Objects;
  * 读写锁服务端
  */
 @AllArgsConstructor
-public class ReadWriteLockServer {
+public class RWLockServer {
     // 互斥资源
     private final MutexResource mutexResource = new MutexResource();
     // 服务端
@@ -30,10 +30,10 @@ public class ReadWriteLockServer {
     // 同步管理者
     private final ServerSyncManager syncManager;
 
-    public ReadWriteLockServer(Server server, long maxWaitTime) {
+    public RWLockServer(Server server, long maxWaitTime) {
         this.server = server;
         this.maxWaitTime = maxWaitTime;
-        this.syncManager = new ServerSyncManager(Server.SyncType.READ_WRITE_LOCK, server);
+        this.syncManager = new ServerSyncManager(Server.SyncType.RW_LOCK, server);
     }
 
     /**

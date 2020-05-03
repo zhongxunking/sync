@@ -117,7 +117,7 @@ public interface Server {
         /**
          * 读写锁
          */
-        READ_WRITE_LOCK,
+        RW_LOCK,
         /**
          * 信号量
          */
