@@ -4,22 +4,22 @@
 
 /*
  * 修订记录:
- * @author 钟勋 2020-04-30 16:56 创建
+ * @author 钟勋 2020-05-03 12:19 创建
  */
 package org.antframework.sync.lock.core;
 
 import org.antframework.sync.core.SyncExecutor;
 import org.antframework.sync.core.SyncWaiter;
-import org.antframework.sync.lock.support.MutexLockServer;
+import org.antframework.sync.lock.support.ReadWriteLockServer;
 
 /**
- * 基于服务端的可重入互斥锁
+ * 基于服务端的可重入读锁
  */
-public class ServerReentrantMutexLock extends AbstractServerReentrantLock {
+public class ServerReentrantReadLock extends AbstractServerReentrantLock {
     // 服务端
-    private final MutexLockServer server;
+    private final ReadWriteLockServer server;
 
-    public ServerReentrantMutexLock(String key, String lockerId, SyncExecutor syncExecutor, MutexLockServer server) {
+    public ServerReentrantReadLock(String key, String lockerId, SyncExecutor syncExecutor, ReadWriteLockServer server) {
         super(key, lockerId, syncExecutor);
         this.server = server;
     }
@@ -31,11 +31,11 @@ public class ServerReentrantMutexLock extends AbstractServerReentrantLock {
 
     @Override
     protected SyncWaiter lockInServer(long deadline) {
-        return server.lock(getKey(), getLockerId(), deadline);
+        return server.lockForRead(getKey(), getLockerId(), deadline);
     }
 
     @Override
     protected void unlockInServer() {
-        server.unlock(getKey(), getLockerId());
+        server.unlockForRead(getKey(), getLockerId());
     }
 }

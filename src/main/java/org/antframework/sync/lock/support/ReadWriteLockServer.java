@@ -107,4 +107,14 @@ public class ReadWriteLockServer {
         mutexResource.release(key, lockerId);
         server.unlockForWrite(key, lockerId);
     }
+
+    /**
+     * 删除等待者
+     *
+     * @param key      锁标识
+     * @param lockerId 加锁者id
+     */
+    public void removeWaiter(String key, String lockerId) {
+        syncManager.removeWaiter(key, lockerId);
+    }
 }
