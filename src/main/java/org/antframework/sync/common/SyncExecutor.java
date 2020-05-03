@@ -24,7 +24,7 @@ public class SyncExecutor {
             5,
             TimeUnit.SECONDS,
             new ArrayBlockingQueue<>(1024),
-            new ThreadPoolExecutor.DiscardPolicy());
+            new ThreadPoolExecutor.AbortPolicy());
 
     /**
      * 执行
