@@ -26,7 +26,7 @@ public class ServerReentrantMutexLock extends AbstractServerReentrantLock {
 
     @Override
     protected void onTryLockEnd() {
-        server.removeWaiter(getKey());
+        server.removeWaiter(getKey(), getLockerId());
     }
 
     @Override
