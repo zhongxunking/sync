@@ -9,7 +9,7 @@
 package org.antframework.sync;
 
 import lombok.Getter;
-import org.antframework.sync.core.SyncExecutor;
+import org.antframework.sync.common.SyncExecutor;
 import org.antframework.sync.extension.Server;
 import org.antframework.sync.lock.LockContext;
 
