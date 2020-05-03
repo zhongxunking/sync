@@ -48,7 +48,7 @@ public class LockContext {
      * @param key 锁标识
      * @return 可重入互斥锁
      */
-    public Lock getMutexLock(String key) {
+    public Lock getLock(String key) {
         return mutexLocks.get().computeIfAbsent(key, k -> new ServerReentrantMutexLock(k, SyncUtils.newId(), syncExecutor, mutexLockServer));
     }
 
