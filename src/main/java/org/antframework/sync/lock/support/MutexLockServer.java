@@ -8,7 +8,7 @@
  */
 package org.antframework.sync.lock.support;
 
-import lombok.AllArgsConstructor;
+import org.antframework.sync.core.ServerSyncManager;
 import org.antframework.sync.core.ServerSyncWaiter;
 import org.antframework.sync.core.SyncWaiter;
 import org.antframework.sync.extension.Server;
@@ -16,7 +16,6 @@ import org.antframework.sync.extension.Server;
 /**
  * 互斥锁服务端
  */
-@AllArgsConstructor
 public class MutexLockServer {
     // 互斥资源
     private final MutexResource mutexResource = new MutexResource();
@@ -24,6 +23,14 @@ public class MutexLockServer {
     private final Server server;
     // 最大等待时间
     private final long maxWaitTime;
+    // 同步管理者
+    private final ServerSyncManager syncManager;
+
+    public MutexLockServer(Server server, long maxWaitTime) {
+        this.server = server;
+        this.maxWaitTime = maxWaitTime;
+        this.syncManager = new ServerSyncManager(Server.SyncType.MUTEX_LOCK, server);
+    }
 
     /**
      * 加锁
@@ -48,7 +55,7 @@ public class MutexLockServer {
         SyncWaiter waiter = null;
         if (waitTime != null) {
             waitTime = Math.min(waitTime, maxWaitTime);
-            waiter = new ServerSyncWaiter(server, Server.SyncType.MUTEX_LOCK, key, waitTime);
+            waiter = new ServerSyncWaiter(syncManager, key, lockerId, waitTime);
         }
         return waiter;
     }
@@ -69,7 +76,7 @@ public class MutexLockServer {
      *
      * @param key 锁标识
      */
-    public void removeWaiter(String key) {
-        server.removeWaiter(Server.SyncType.MUTEX_LOCK, key);
+    public void removeWaiter(String key, String lockerId) {
+        syncManager.removeWaiter(key, lockerId);
     }
 }

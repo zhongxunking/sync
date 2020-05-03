@@ -8,8 +8,6 @@
  */
 package org.antframework.sync.extension;
 
-import java.util.concurrent.TimeUnit;
-
 /**
  *
  */
@@ -31,9 +29,9 @@ public interface Server {
 
     void releaseForSemaphore(String key, int totalPermits, int newPermits, String semaphoreId);
 
-    boolean waitSync(SyncType type, String key, long timeout, TimeUnit unit);
+    void addSyncListener(SyncType type, String key, Runnable listener);
 
-    void removeWaiter(SyncType type, String key);
+    void removeSyncListener(SyncType type, String key, Runnable listener);
 
     enum SyncType {
         MUTEX_LOCK,

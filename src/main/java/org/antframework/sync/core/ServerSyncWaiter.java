@@ -9,32 +9,31 @@
 package org.antframework.sync.core;
 
 import lombok.AllArgsConstructor;
-import org.antframework.sync.extension.Server;
 
 import java.util.concurrent.TimeUnit;
 
 /**
- *
+ * 基于服务端的同步等待器
  */
 @AllArgsConstructor
 public class ServerSyncWaiter implements SyncWaiter {
-
-    private final Server server;
-
-    private final Server.SyncType syncType;
-
+    // 同步管理者
+    private final ServerSyncManager syncManager;
+    // 目标标识
     private final String key;
-
+    // 等待者
+    private final String waiter;
+    // 最大等待时长（毫秒）
     private final long maxWaitTime;
 
     @Override
     public boolean waitSync(long timeout, TimeUnit unit) throws InterruptedException {
         long time = Math.min(unit.toMillis(timeout), maxWaitTime);
-        return server.waitSync(syncType, key, time, TimeUnit.MILLISECONDS);
+        return syncManager.waitSync(key, waiter, time);
     }
 
     @Override
     public String toString() {
-        return String.format("ServerSyncWaiter{server=%s,syncType=%s,key=%s,maxWaitTime=%d}", server, syncType, key, maxWaitTime);
+        return String.format("ServerSyncWaiter{key=%s,waiter=%s,maxWaitTime=%d}", key, waiter, maxWaitTime);
     }
 }
