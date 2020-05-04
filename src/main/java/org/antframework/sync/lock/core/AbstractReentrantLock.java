@@ -89,15 +89,14 @@ public abstract class AbstractReentrantLock implements Lock {
         releaseLock();
     }
 
-    // 尝试释放锁（返回true表示锁已被真正释放，否则锁未被真正释放）
-    private synchronized boolean releaseLock() {
+    // 尝试释放锁
+    private synchronized void releaseLock() {
         if (lockedTimes > 0) {
             lockedTimes--;
             if (lockedTimes <= 0) {
                 doReleaseLock();
             }
         }
-        return lockedTimes <= 0;
     }
 
     /**
