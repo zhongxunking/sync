@@ -12,7 +12,6 @@ import lombok.Getter;
 import org.antframework.sync.common.SyncWaiter;
 import org.antframework.sync.semaphore.Semaphore;
 import org.apache.commons.lang3.exception.ExceptionUtils;
-import org.springframework.util.Assert;
 
 import java.util.concurrent.TimeUnit;
 
@@ -58,24 +57,26 @@ public abstract class AbstractSemaphore implements Semaphore {
 
     @Override
     public boolean tryAcquire(int permits, long timeout, TimeUnit unit) throws InterruptedException {
-        Assert.isTrue(permits >= 0, "permits必须大于或等于0");
+        if (permits < 0) {
+            throw new IllegalArgumentException("permits必须大于或等于0");
+        }
         long deadline = System.currentTimeMillis() + unit.toMillis(timeout);
-        SyncWaiter waiter = acquirePermits(permits);
+        SyncWaiter waiter = acquirePermits(permits, deadline);
         while (waiter != null) {
-            long waitTimeout = deadline - System.currentTimeMillis();
-            if (waitTimeout <= 0) {
+            long time = deadline - System.currentTimeMillis();
+            if (time <= 0) {
                 return false;
             }
-            waiter.waitSync(waitTimeout, TimeUnit.MILLISECONDS);
-            waiter = acquirePermits(permits);
+            waiter.waitSync(time, TimeUnit.MILLISECONDS);
+            waiter = acquirePermits(permits, deadline);
         }
         return true;
     }
 
     // 获取许可（返回null表示获取成功；否则失败）
-    private synchronized SyncWaiter acquirePermits(int permits) {
+    private synchronized SyncWaiter acquirePermits(int permits, long deadline) {
         int newPermits = acquiredPermits + permits;
-        SyncWaiter waiter = doAcquire(newPermits);
+        SyncWaiter waiter = doAcquire(newPermits, deadline);
         if (waiter == null) {
             acquiredPermits = newPermits;
         }
@@ -86,9 +87,10 @@ public abstract class AbstractSemaphore implements Semaphore {
      * 执行获取许可
      *
      * @param newPermits 新的许可数
+     * @param deadline   截止时间
      * @return null 获取成功；否则获取失败
      */
-    protected abstract SyncWaiter doAcquire(int newPermits);
+    protected abstract SyncWaiter doAcquire(int newPermits, long deadline);
 
     @Override
     public void release() {
@@ -97,7 +99,9 @@ public abstract class AbstractSemaphore implements Semaphore {
 
     @Override
     public void release(int permits) {
-        Assert.isTrue(permits >= 0, "permits必须大于或等于0");
+        if (permits < 0) {
+            throw new IllegalArgumentException("permits必须大于或等于0");
+        }
         releasePermits(permits);
     }
 
