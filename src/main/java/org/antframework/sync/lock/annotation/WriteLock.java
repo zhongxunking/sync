@@ -8,9 +8,14 @@
  */
 package org.antframework.sync.lock.annotation;
 
+import java.lang.annotation.*;
+
 /**
  * 写锁
  */
+@Target({ElementType.METHOD, ElementType.ANNOTATION_TYPE})
+@Retention(RetentionPolicy.RUNTIME)
+@Documented
 public @interface WriteLock {
     /**
      * 加锁条件SpEL表达式
@@ -27,7 +32,7 @@ public @interface WriteLock {
     String key();
 
     /**
-     * 等待加锁的超时时间（单位：毫秒）
+     * 等待加锁的超时时间（毫秒）
      * 负数表示永远等待，直到加锁成功；0表示直接加锁，加锁失败则立即抛异常；正数表示加锁的最长等待时间，超过时间则抛异常。
      */
     long timeout() default -1;
