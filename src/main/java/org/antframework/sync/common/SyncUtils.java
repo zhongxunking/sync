@@ -22,9 +22,9 @@ import java.util.UUID;
  */
 public class SyncUtils {
     /**
-     * 获取资源
+     * 获取脚本
      */
-    public static String getResource(String path) {
+    public static String getScript(String path) {
         InputStream input = SyncUtils.class.getClassLoader().getResourceAsStream(path);
         if (input == null) {
             throw new IllegalArgumentException(String.format("资源[%s]不存在", path));
