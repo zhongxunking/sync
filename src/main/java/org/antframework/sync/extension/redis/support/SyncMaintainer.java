@@ -61,7 +61,7 @@ public class SyncMaintainer {
      *
      * @return 所有Sync标识
      */
-    public Set<String> keys() {
+    public Set<String> getKeys() {
         return new HashSet<>(relations.keySet());
     }
 
