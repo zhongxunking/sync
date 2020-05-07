@@ -72,19 +72,17 @@ public class SyncMaintainer {
      * @param maintainer 维护者
      */
     public void maintain(String key, BiFunction<String, String, Boolean> maintainer) {
-        relations.compute(key, (k, v) -> {
-            if (v != null) {
-                Iterator<String> iterator = v.iterator();
-                while (iterator.hasNext()) {
-                    String owner = iterator.next();
-                    boolean alive = maintainer.apply(k, owner);
-                    if (!alive) {
-                        iterator.remove();
-                    }
+        relations.computeIfPresent(key, (k, v) -> {
+            Iterator<String> iterator = v.iterator();
+            while (iterator.hasNext()) {
+                String owner = iterator.next();
+                boolean alive = maintainer.apply(k, owner);
+                if (!alive) {
+                    iterator.remove();
                 }
-                if (v.isEmpty()) {
-                    v = null;
-                }
+            }
+            if (v.isEmpty()) {
+                v = null;
             }
             return v;
         });
