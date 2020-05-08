@@ -26,9 +26,9 @@ import java.util.concurrent.TimeUnit;
 @Slf4j
 public class RedisMutexLockServer {
     // 加锁脚本
-    private static final String LOCK_SCRIPT = SyncUtils.getScript("META-INFO/server/redis/mutext-lock/ReentrantMutexLock-lock.lua");
+    private static final String LOCK_SCRIPT = SyncUtils.getScript("META-INFO/server/redis/mutex-lock/MutexLock-lock.lua");
     // 解锁脚本
-    private static final String UNLOCK_SCRIPT = SyncUtils.getScript("META-INFO/server/redis/mutext-lock/ReentrantMutexLock-unlock.lua");
+    private static final String UNLOCK_SCRIPT = SyncUtils.getScript("META-INFO/server/redis/mutex-lock/MutexLock-unlock.lua");
     // 同步通道前缀
     private static final String SYNC_CHANNEL_PREFIX = "sync:";
     // redis中key的前缀
