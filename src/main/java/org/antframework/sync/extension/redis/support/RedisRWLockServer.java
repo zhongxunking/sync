@@ -37,10 +37,8 @@ public class RedisRWLockServer {
     private static final String UNLOCK_FOR_WRITE_SCRIPT = SyncUtils.getScript("META-INFO/server/redis/rw-lock/RWLock-unlockForWrite.lua");
     // 维护写锁脚本
     private static final String MAINTAIN_FOR_WRITE_SCRIPT = SyncUtils.getScript("META-INFO/server/redis/rw-lock/RWLock-maintainForWrite.lua");
-    // 同步通道前缀
-    private static final String SYNC_CHANNEL_PREFIX = "sync:";
     // redis中key的前缀
-    private static final String REDIS_KEY_PREFIX = "rw-lock:";
+    private static final String REDIS_KEY_PREFIX = "sync:rw-lock:";
 
     // 读锁维护器
     private final SyncMaintainer readLockMaintainer = new SyncMaintainer();
@@ -185,7 +183,7 @@ public class RedisRWLockServer {
      * @return 同步通道
      */
     public String computeSyncChannel(String key) {
-        return SYNC_CHANNEL_PREFIX + computeRedisKey(key);
+        return computeRedisKey(key);
     }
 
     // 计算在redis中key

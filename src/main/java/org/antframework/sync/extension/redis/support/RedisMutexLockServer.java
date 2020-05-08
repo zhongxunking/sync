@@ -30,10 +30,8 @@ public class RedisMutexLockServer {
     private static final String UNLOCK_SCRIPT = SyncUtils.getScript("META-INFO/server/redis/mutex-lock/MutexLock-unlock.lua");
     // 维护脚本
     private static final String MAINTAIN_SCRIPT = SyncUtils.getScript("META-INFO/server/redis/mutex-lock/MutexLock-maintain.lua");
-    // 同步通道前缀
-    private static final String SYNC_CHANNEL_PREFIX = "sync:";
     // redis中key的前缀
-    private static final String REDIS_KEY_PREFIX = "mutex-lock:";
+    private static final String REDIS_KEY_PREFIX = "sync:mutex-lock:";
 
     // 维护器
     private final SyncMaintainer maintainer = new SyncMaintainer();
@@ -123,7 +121,7 @@ public class RedisMutexLockServer {
      * @return 同步通道
      */
     public String computeSyncChannel(String key) {
-        return SYNC_CHANNEL_PREFIX + computeRedisKey(key);
+        return computeRedisKey(key);
     }
 
     // 计算在redis中key

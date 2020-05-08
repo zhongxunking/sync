@@ -28,10 +28,8 @@ public class RedisSemaphoreServer {
     private static final String UPDATE_PERMITS_SCRIPT = SyncUtils.getScript("META-INFO/server/redis/semaphore/Semaphore-updatePermits.lua");
     // 维护脚本
     private static final String MAINTAIN_SCRIPT = SyncUtils.getScript("META-INFO/server/redis/semaphore/Semaphore-maintain.lua");
-    // 同步通道前缀
-    private static final String SYNC_CHANNEL_PREFIX = "sync:";
     // redis中key的前缀
-    private static final String REDIS_KEY_PREFIX = "semaphore:";
+    private static final String REDIS_KEY_PREFIX = "sync:semaphore:";
 
     // 维护器
     private final SyncMaintainer maintainer = new SyncMaintainer();
@@ -145,7 +143,7 @@ public class RedisSemaphoreServer {
      * @return 同步通道
      */
     public String computeSyncChannel(String key) {
-        return SYNC_CHANNEL_PREFIX + computeRedisKey(key);
+        return computeRedisKey(key);
     }
 
     // 计算在redis中key
