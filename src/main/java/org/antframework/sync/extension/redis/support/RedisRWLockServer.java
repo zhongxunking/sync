@@ -15,9 +15,9 @@ import org.antframework.sync.extension.redis.extension.RedisExecutor;
 
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.List;
 import java.util.Set;
 import java.util.concurrent.Executor;
-import java.util.concurrent.TimeUnit;
 
 /**
  * 基于redis的读写锁服务端
@@ -26,13 +26,17 @@ import java.util.concurrent.TimeUnit;
 @Slf4j
 public class RedisRWLockServer {
     // 加读锁脚本
-    private static final String LOCK_FOR_READ_SCRIPT = SyncUtils.getScript("META-INFO/server/redis/rw-lock/ReentrantReadLock-lock.lua");
+    private static final String LOCK_FOR_READ_SCRIPT = SyncUtils.getScript("META-INFO/server/redis/rw-lock/RWLock-lockForRead.lua");
     // 解读锁脚本
-    private static final String UNLOCK_FOR_READ_SCRIPT = SyncUtils.getScript("META-INFO/server/redis/rw-lock/ReentrantReadLock-unlock.lua");
+    private static final String UNLOCK_FOR_READ_SCRIPT = SyncUtils.getScript("META-INFO/server/redis/rw-lock/RWLock-unlockForRead.lua");
+    // 维护读锁脚本
+    private static final String MAINTAIN_FOR_READ_SCRIPT = SyncUtils.getScript("META-INFO/server/redis/rw-lock/RWLock-maintainForRead.lua");
     // 加写锁脚本
-    private static final String LOCK_FOR_WRITE_SCRIPT = SyncUtils.getScript("META-INFO/server/redis/rw-lock/ReentrantWriteLock-lock.lua");
+    private static final String LOCK_FOR_WRITE_SCRIPT = SyncUtils.getScript("META-INFO/server/redis/rw-lock/RWLock-lockForWrite.lua");
     // 解写锁脚本
-    private static final String UNLOCK_FOR_WRITE_SCRIPT = SyncUtils.getScript("META-INFO/server/redis/rw-lock/ReentrantWriteLock-unlock.lua");
+    private static final String UNLOCK_FOR_WRITE_SCRIPT = SyncUtils.getScript("META-INFO/server/redis/rw-lock/RWLock-unlockForWrite.lua");
+    // 维护写锁脚本
+    private static final String MAINTAIN_FOR_WRITE_SCRIPT = SyncUtils.getScript("META-INFO/server/redis/rw-lock/RWLock-maintainForWrite.lua");
     // 同步通道前缀
     private static final String SYNC_CHANNEL_PREFIX = "sync:";
     // redis中key的前缀
@@ -58,10 +62,11 @@ public class RedisRWLockServer {
      */
     public Long lockForRead(String key, String lockerId) {
         String redisKey = computeRedisKey(key);
+        long currentTime = System.currentTimeMillis();
         Long waitTime = redisExecutor.eval(
                 LOCK_FOR_READ_SCRIPT,
                 Collections.singletonList(redisKey),
-                Arrays.asList(lockerId, liveTime, System.currentTimeMillis()),
+                Arrays.asList(lockerId, currentTime, liveTime),
                 Long.class);
         if (waitTime == null) {
             readLockMaintainer.add(key, lockerId);
@@ -78,13 +83,18 @@ public class RedisRWLockServer {
     public void unlockForRead(String key, String lockerId) {
         readLockMaintainer.remove(key, lockerId);
         String redisKey = computeRedisKey(key);
-        boolean success = redisExecutor.eval(
-                UNLOCK_FOR_READ_SCRIPT,
-                Collections.singletonList(redisKey),
-                Arrays.asList(lockerId, computeSyncChannel(key), System.currentTimeMillis()),
-                Boolean.class);
-        if (!success) {
-            log.warn("调用redis解读锁异常，可能已经发生并发问题：key={},lockerId={}", key, lockerId);
+        String syncChannel = computeSyncChannel(key);
+        try {
+            boolean success = redisExecutor.eval(
+                    UNLOCK_FOR_READ_SCRIPT,
+                    Collections.singletonList(redisKey),
+                    Arrays.asList(lockerId, syncChannel),
+                    Boolean.class);
+            if (!success) {
+                log.error("调用redis解读锁失败（锁不存在或已经易主），可能已经发生并发问题：key={},lockerId={}", key, lockerId);
+            }
+        } catch (Throwable e) {
+            log.error("调用redis解读锁出错：", e);
         }
     }
 
@@ -101,7 +111,7 @@ public class RedisRWLockServer {
         Long waitTime = redisExecutor.eval(
                 LOCK_FOR_WRITE_SCRIPT,
                 Collections.singletonList(redisKey),
-                Arrays.asList(lockerId, liveTime, deadline),
+                Arrays.asList(lockerId, deadline, liveTime),
                 Long.class);
         if (waitTime == null) {
             writeLockMaintainer.add(key, lockerId);
@@ -118,13 +128,18 @@ public class RedisRWLockServer {
     public void unlockForWrite(String key, String lockerId) {
         writeLockMaintainer.remove(key, lockerId);
         String redisKey = computeRedisKey(key);
-        boolean success = redisExecutor.eval(
-                UNLOCK_FOR_WRITE_SCRIPT,
-                Collections.singletonList(redisKey),
-                Arrays.asList(lockerId, computeSyncChannel(key)),
-                Boolean.class);
-        if (!success) {
-            log.warn("调用redis解写锁异常，可能已经发生并发问题：key={},lockerId={}", key, lockerId);
+        String syncChannel = computeSyncChannel(key);
+        try {
+            boolean success = redisExecutor.eval(
+                    UNLOCK_FOR_WRITE_SCRIPT,
+                    Collections.singletonList(redisKey),
+                    Arrays.asList(lockerId, syncChannel),
+                    Boolean.class);
+            if (!success) {
+                log.error("调用redis解写锁失败（锁不存在或已经易主），可能已经发生并发问题：key={},lockerId={}", key, lockerId);
+            }
+        } catch (Throwable e) {
+            log.error("调用redis解写锁出错：", e);
         }
     }
 
@@ -134,12 +149,33 @@ public class RedisRWLockServer {
     public void maintain() {
         Set<String> keys = readLockMaintainer.getKeys();
         for (String key : keys) {
-            maintainExecutor.execute(() -> readLockMaintainer.maintain(key, (k, lockerId) -> redisExecutor.expire(k, liveTime, TimeUnit.MILLISECONDS)));
+            maintainExecutor.execute(() -> readLockMaintainer.maintain(key, (k, lockerId) -> doMaintain(k, lockerId, MAINTAIN_FOR_READ_SCRIPT, Arrays.asList(lockerId, System.currentTimeMillis(), liveTime))));
         }
         keys = writeLockMaintainer.getKeys();
         for (String key : keys) {
-            maintainExecutor.execute(() -> writeLockMaintainer.maintain(key, (k, lockerId) -> redisExecutor.expire(k, liveTime, TimeUnit.MILLISECONDS)));
+            maintainExecutor.execute(() -> writeLockMaintainer.maintain(key, (k, lockerId) -> doMaintain(k, lockerId, MAINTAIN_FOR_WRITE_SCRIPT, Arrays.asList(lockerId, liveTime))));
         }
+    }
+
+    // 执行维护
+    private boolean doMaintain(String key, String lockerId, String script, List<Object> args) {
+        String redisKey = computeRedisKey(key);
+        boolean alive = true;
+        try {
+            alive = redisExecutor.eval(
+                    script,
+                    Collections.singletonList(redisKey),
+                    args,
+                    Boolean.class);
+            if (alive) {
+                log.debug("调用redis维护读写锁成功：key={},lockerId={}", key, lockerId);
+            } else {
+                log.error("调用redis维护读写锁失败（锁不存在或已经易主），可能已经发生并发问题：key={},lockerId={}", key, lockerId);
+            }
+        } catch (Throwable e) {
+            log.error("调用redis维护读写锁出错：", e);
+        }
+        return alive;
     }
 
     /**
