@@ -81,7 +81,7 @@ public class RedisMutexLockServer {
                     Arrays.asList(lockerId, syncChannel),
                     Boolean.class);
             if (!success) {
-                log.warn("调用redis解互斥锁异常，可能已经发生并发问题：key={},lockerId={}", key, lockerId);
+                log.error("调用redis维护互斥锁失败（互斥锁不存在或已经易主），可能已经发生并发问题：key={},lockerId={}", key, lockerId);
             }
         } catch (Throwable e) {
             log.error("调用redis解互斥锁出错：", e);
@@ -96,11 +96,22 @@ public class RedisMutexLockServer {
         for (String key : keys) {
             maintainExecutor.execute(() -> maintainer.maintain(key, (k, lockerId) -> {
                 String redisKey = computeRedisKey(k);
-                return redisExecutor.eval(
-                        MAINTAIN_SCRIPT,
-                        Collections.singletonList(redisKey),
-                        Arrays.asList(lockerId, liveTime),
-                        Boolean.class);
+                boolean alive = true;
+                try {
+                    alive = redisExecutor.eval(
+                            MAINTAIN_SCRIPT,
+                            Collections.singletonList(redisKey),
+                            Arrays.asList(lockerId, liveTime),
+                            Boolean.class);
+                    if (alive) {
+                        log.debug("调用redis维护互斥锁成功：key={},lockerId={}", k, lockerId);
+                    } else {
+                        log.error("调用redis维护互斥锁失败（互斥锁不存在或已经易主），可能已经发生并发问题：key={},lockerId={}", k, lockerId);
+                    }
+                } catch (Throwable e) {
+                    log.error("调用redis维护互斥锁出错：", e);
+                }
+                return alive;
             }));
         }
     }
