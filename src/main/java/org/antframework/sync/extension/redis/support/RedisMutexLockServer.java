@@ -81,7 +81,7 @@ public class RedisMutexLockServer {
                     Arrays.asList(lockerId, syncChannel),
                     Boolean.class);
             if (!success) {
-                log.error("调用redis维护互斥锁失败（互斥锁不存在或已经易主），可能已经发生并发问题：key={},lockerId={}", key, lockerId);
+                log.error("调用redis解互斥锁失败（互斥锁不存在或已经易主），可能已经发生并发问题：key={},lockerId={}", key, lockerId);
             }
         } catch (Throwable e) {
             log.error("调用redis解互斥锁出错：", e);
