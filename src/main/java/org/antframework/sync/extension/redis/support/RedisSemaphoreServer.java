@@ -9,6 +9,7 @@
 package org.antframework.sync.extension.redis.support;
 
 import lombok.AllArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.antframework.sync.common.SyncUtils;
 import org.antframework.sync.extension.redis.extension.RedisExecutor;
 
@@ -21,6 +22,7 @@ import java.util.concurrent.Executor;
  * 基于redis的信号量服务端
  */
 @AllArgsConstructor
+@Slf4j
 public class RedisSemaphoreServer {
     // 更新许可数脚本
     private static final String UPDATE_PERMITS_SCRIPT = SyncUtils.getScript("META-INFO/server/redis/semaphore/Semaphore-updatePermits.lua");
@@ -51,17 +53,19 @@ public class RedisSemaphoreServer {
      */
     public Long acquire(String key, int totalPermits, int newPermits, String semaphorerId) {
         String redisKey = computeRedisKey(key);
+        long currentTime = System.currentTimeMillis();
+        String syncChannel = computeSyncChannel(key);
         Long waitTime = redisExecutor.eval(
                 UPDATE_PERMITS_SCRIPT,
                 Collections.singletonList(redisKey),
                 Arrays.asList(
-                        semaphorerId,
                         totalPermits,
                         newPermits,
+                        semaphorerId,
+                        currentTime,
+                        syncChannel,
                         false,
-                        System.currentTimeMillis(),
-                        liveTime,
-                        computeSyncChannel(redisKey)),
+                        liveTime),
                 Long.class);
         if (waitTime == null && newPermits > 0) {
             maintainer.add(key, semaphorerId);
@@ -82,18 +86,24 @@ public class RedisSemaphoreServer {
             maintainer.remove(key, semaphorerId);
         }
         String redisKey = computeRedisKey(key);
-        redisExecutor.eval(
-                UPDATE_PERMITS_SCRIPT,
-                Collections.singletonList(redisKey),
-                Arrays.asList(
-                        semaphorerId,
-                        totalPermits,
-                        newPermits,
-                        true,
-                        System.currentTimeMillis(),
-                        liveTime,
-                        computeSyncChannel(key)),
-                Long.class);
+        long currentTime = System.currentTimeMillis();
+        String syncChannel = computeSyncChannel(key);
+        try {
+            redisExecutor.eval(
+                    UPDATE_PERMITS_SCRIPT,
+                    Collections.singletonList(redisKey),
+                    Arrays.asList(
+                            totalPermits,
+                            newPermits,
+                            semaphorerId,
+                            currentTime,
+                            syncChannel,
+                            true,
+                            liveTime),
+                    Long.class);
+        } catch (Throwable e) {
+            log.error("调用redis释放信号量许可出错：", e);
+        }
     }
 
     /**
@@ -102,14 +112,29 @@ public class RedisSemaphoreServer {
     public void maintain() {
         Set<String> keys = maintainer.getKeys();
         for (String key : keys) {
-            maintainExecutor.execute(() -> maintainer.maintain(key, (k, semaphorerId) -> redisExecutor.eval(
-                    MAINTAIN_SCRIPT,
-                    Collections.singletonList(k),
-                    Arrays.asList(
-                            semaphorerId,
-                            System.currentTimeMillis(),
-                            liveTime),
-                    Boolean.class)));
+            maintainExecutor.execute(() -> maintainer.maintain(key, (k, semaphorerId) -> {
+                String redisKey = computeRedisKey(k);
+                long currentTime = System.currentTimeMillis();
+                boolean alive = true;
+                try {
+                    alive = redisExecutor.eval(
+                            MAINTAIN_SCRIPT,
+                            Collections.singletonList(redisKey),
+                            Arrays.asList(
+                                    semaphorerId,
+                                    currentTime,
+                                    liveTime),
+                            Boolean.class);
+                    if (alive) {
+                        log.debug("调用redis维护信号量成功：key={},semaphorerId={}", k, semaphorerId);
+                    } else {
+                        log.error("调用redis维护信号量失败（信号量不存在或已经不持有许可），可能已经发生并发问题：key={},semaphorerId={}", k, semaphorerId);
+                    }
+                } catch (Throwable e) {
+                    log.error("调用redis维护信号量出错：", e);
+                }
+                return alive;
+            }));
         }
     }
 
