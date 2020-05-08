@@ -128,9 +128,13 @@ public class RedisServer implements Server {
     private class MaintainTask extends TimerTask {
         @Override
         public void run() {
-            mutexLockServer.maintain();
-            rwLockServer.maintain();
-            semaphoreServer.maintain();
+            try {
+                mutexLockServer.maintain();
+                rwLockServer.maintain();
+                semaphoreServer.maintain();
+            } catch (Throwable e) {
+                log.error("定时维护互斥锁、读写锁、信号量在redis中的有效期出错：", e);
+            }
         }
     }
 }
