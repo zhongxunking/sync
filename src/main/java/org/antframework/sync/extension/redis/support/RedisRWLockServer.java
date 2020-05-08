@@ -54,7 +54,7 @@ public class RedisRWLockServer {
      *
      * @param key      锁标识
      * @param lockerId 加锁者id
-     * @return null 加锁成功；否则返回需等待的时间
+     * @return null 加锁成功；否则返回需等待的时间（毫秒）
      */
     public Long lockForRead(String key, String lockerId) {
         String redisKey = computeRedisKey(key);
@@ -94,7 +94,7 @@ public class RedisRWLockServer {
      * @param key      锁标识
      * @param lockerId 加锁者id
      * @param deadline 截止时间
-     * @return null 加锁成功；否则返回需等待的时间
+     * @return null 加锁成功；否则返回需等待的时间（毫秒）
      */
     public Long lockForWrite(String key, String lockerId, long deadline) {
         String redisKey = computeRedisKey(key);

@@ -47,7 +47,7 @@ public class RedisSemaphoreServer {
      * @param totalPermits 许可总数
      * @param newPermits   新许可数
      * @param semaphorerId 获取信号量许可者id
-     * @return null 获取成功；否则返回需等待的时间
+     * @return null 获取成功；否则返回需等待的时间（毫秒）
      */
     public Long acquire(String key, int totalPermits, int newPermits, String semaphorerId) {
         String redisKey = computeRedisKey(key);

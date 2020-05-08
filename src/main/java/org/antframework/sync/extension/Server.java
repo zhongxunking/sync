@@ -18,7 +18,7 @@ public interface Server {
      * @param key      锁标识
      * @param lockerId 加锁者id
      * @param deadline 截止时间
-     * @return null 加锁成功；否则返回需等待的时间
+     * @return null 加锁成功；否则返回需等待的时间（毫秒）
      */
     Long lockForMutex(String key, String lockerId, long deadline);
 
@@ -36,7 +36,7 @@ public interface Server {
      * @param key      锁标识
      * @param lockerId 加锁者id
      * @param deadline 截止时间
-     * @return null 加锁成功；否则返回需等待的时间
+     * @return null 加锁成功；否则返回需等待的时间（毫秒）
      */
     Long lockForRead(String key, String lockerId, long deadline);
 
@@ -54,7 +54,7 @@ public interface Server {
      * @param key      锁标识
      * @param lockerId 加锁者id
      * @param deadline 截止时间
-     * @return null 加锁成功；否则返回需等待的时间
+     * @return null 加锁成功；否则返回需等待的时间（毫秒）
      */
     Long lockForWrite(String key, String lockerId, long deadline);
 
@@ -74,7 +74,7 @@ public interface Server {
      * @param newPermits   新许可数
      * @param semaphorerId 获取信号量许可者id
      * @param deadline     截止时间
-     * @return null 获取成功；否则返回需等待的时间
+     * @return null 获取成功；否则返回需等待的时间（毫秒）
      */
     Long acquireForSemaphore(String key, int totalPermits, int newPermits, String semaphorerId, long deadline);
 
