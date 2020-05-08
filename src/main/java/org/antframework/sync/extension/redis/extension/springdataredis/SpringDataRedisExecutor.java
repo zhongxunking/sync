@@ -52,11 +52,11 @@ public class SpringDataRedisExecutor implements RedisExecutor {
 
     @Override
     public boolean expire(String key, long timeout, TimeUnit unit) {
-        Boolean success = redisTemplate.expire(key, timeout, unit);
-        if (success == null) {
-            success = true;
+        Boolean alive = redisTemplate.expire(key, timeout, unit);
+        if (alive == null) {
+            alive = true;
         }
-        return success;
+        return alive;
     }
 
     @Override

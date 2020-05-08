@@ -17,7 +17,6 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.Set;
 import java.util.concurrent.Executor;
-import java.util.concurrent.TimeUnit;
 
 /**
  * 基于redis的互斥锁服务端
@@ -29,6 +28,8 @@ public class RedisMutexLockServer {
     private static final String LOCK_SCRIPT = SyncUtils.getScript("META-INFO/server/redis/mutex-lock/MutexLock-lock.lua");
     // 解锁脚本
     private static final String UNLOCK_SCRIPT = SyncUtils.getScript("META-INFO/server/redis/mutex-lock/MutexLock-unlock.lua");
+    // 维护脚本
+    private static final String MAINTAIN_SCRIPT = SyncUtils.getScript("META-INFO/server/redis/mutex-lock/MutexLock-maintain.lua");
     // 同步通道前缀
     private static final String SYNC_CHANNEL_PREFIX = "sync:";
     // redis中key的前缀
@@ -72,13 +73,18 @@ public class RedisMutexLockServer {
     public void unlock(String key, String lockerId) {
         maintainer.remove(key, lockerId);
         String redisKey = computeRedisKey(key);
-        boolean success = redisExecutor.eval(
-                UNLOCK_SCRIPT,
-                Collections.singletonList(redisKey),
-                Arrays.asList(lockerId, computeSyncChannel(key)),
-                Boolean.class);
-        if (!success) {
-            log.warn("调用redis解互斥锁异常，可能已经发生并发问题：key={},lockerId={}", key, lockerId);
+        String syncChannel = computeSyncChannel(key);
+        try {
+            boolean success = redisExecutor.eval(
+                    UNLOCK_SCRIPT,
+                    Collections.singletonList(redisKey),
+                    Arrays.asList(lockerId, syncChannel),
+                    Boolean.class);
+            if (!success) {
+                log.warn("调用redis解互斥锁异常，可能已经发生并发问题：key={},lockerId={}", key, lockerId);
+            }
+        } catch (Throwable e) {
+            log.error("调用redis解互斥锁出错：", e);
         }
     }
 
@@ -88,7 +94,14 @@ public class RedisMutexLockServer {
     public void maintain() {
         Set<String> keys = maintainer.getKeys();
         for (String key : keys) {
-            maintainExecutor.execute(() -> maintainer.maintain(key, (k, lockerId) -> redisExecutor.expire(k, liveTime, TimeUnit.MILLISECONDS)));
+            maintainExecutor.execute(() -> maintainer.maintain(key, (k, lockerId) -> {
+                String redisKey = computeRedisKey(k);
+                return redisExecutor.eval(
+                        MAINTAIN_SCRIPT,
+                        Collections.singletonList(redisKey),
+                        Arrays.asList(lockerId, liveTime),
+                        Boolean.class);
+            }));
         }
     }
 
