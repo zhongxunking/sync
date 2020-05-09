@@ -9,7 +9,6 @@
 package org.antframework.sync.extension.redis.extension;
 
 import java.util.List;
-import java.util.concurrent.TimeUnit;
 
 /**
  * redis执行器
@@ -26,16 +25,6 @@ public interface RedisExecutor {
      * @return 脚本返回值
      */
     <T> T eval(String script, List<Object> keys, List<Object> args, Class<T> resultType);
-
-    /**
-     * 设置指定key的有效期
-     *
-     * @param key     被设置有效期的key
-     * @param timeout 有效时长
-     * @param unit    时间单位
-     * @return true 表示成功；false 表示不存在该key
-     */
-    boolean expire(String key, long timeout, TimeUnit unit);
 
     /**
      * 新增消息监听器
