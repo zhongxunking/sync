@@ -1,5 +1,5 @@
 -- KEYS: lockKey
--- ARGV: lockerId,liveTime
+-- ARGV: lockerId, liveTime
 -- return: true（成功）；false（失败，锁不存在或已经易主）
 
 -- 数据结构

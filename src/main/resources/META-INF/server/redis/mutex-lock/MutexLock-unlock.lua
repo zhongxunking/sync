@@ -1,5 +1,5 @@
 -- KEYS: lockKey
--- ARGV: lockerId,syncChannel
+-- ARGV: lockerId, syncChannel
 -- return: true（成功）；false（失败，锁不存在或已经易主）
 
 -- 数据结构

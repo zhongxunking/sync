@@ -1,5 +1,5 @@
 -- KEYS: lockKey
--- ARGV: lockerId,liveTime
+-- ARGV: lockerId, liveTime
 -- return: nil（加锁成功）；waitTime（加锁失败，需等待的毫秒时间）
 
 -- 数据结构
