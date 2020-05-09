@@ -6,7 +6,7 @@
  * 修订记录:
  * @author 钟勋 2020-05-02 15:48 创建
  */
-package org.antframework.sync.lock.support;
+package org.antframework.sync.common;
 
 import java.util.Map;
 import java.util.Objects;

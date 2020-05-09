@@ -6,7 +6,7 @@
  * 修订记录:
  * @author 钟勋 2020-05-05 14:00 创建
  */
-package org.antframework.sync.semaphore.support;
+package org.antframework.sync.common;
 
 import java.util.HashMap;
 import java.util.Map;

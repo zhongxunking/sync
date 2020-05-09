@@ -8,6 +8,7 @@
  */
 package org.antframework.sync.lock.support;
 
+import org.antframework.sync.common.MutexResource;
 import org.antframework.sync.common.ServerSyncManager;
 import org.antframework.sync.common.ServerSyncWaiter;
 import org.antframework.sync.common.SyncWaiter;

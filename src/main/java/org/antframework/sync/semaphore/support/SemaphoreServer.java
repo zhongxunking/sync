@@ -8,6 +8,7 @@
  */
 package org.antframework.sync.semaphore.support;
 
+import org.antframework.sync.common.FiniteResource;
 import org.antframework.sync.common.ServerSyncManager;
 import org.antframework.sync.common.ServerSyncWaiter;
 import org.antframework.sync.common.SyncWaiter;
