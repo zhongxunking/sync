@@ -2,9 +2,9 @@
 -- ARGV: lockerId, liveTime
 -- return: true（成功）；false（失败，锁不存在或已经易主）
 
--- 数据结构
--- lockKey:
---   owner: lockerId
+-- 数据结构（hash）
+-- ${lockKey}:
+--   owner: ${lockerId}
 
 local lockKey = KEYS[1];
 local lockerId = ARGV[1];

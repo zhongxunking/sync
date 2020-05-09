@@ -2,9 +2,9 @@
 -- ARGV: lockerId, liveTime
 -- return: nil（加锁成功）；waitTime（加锁失败，需等待的毫秒时间）
 
--- 数据结构
--- lockKey:
---   owner: lockerId
+-- 数据结构（hash）
+-- ${lockKey}:
+--   owner: ${lockerId}
 
 local lockKey = KEYS[1];
 local lockerId = ARGV[1];
