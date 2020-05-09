@@ -45,12 +45,10 @@ public class SyncMaintainer {
      * @param owner 持有者
      */
     public void remove(String key, String owner) {
-        relations.compute(key, (k, v) -> {
-            if (v != null) {
-                v.remove(owner);
-                if (v.isEmpty()) {
-                    v = null;
-                }
+        relations.computeIfPresent(key, (k, v) -> {
+            v.remove(owner);
+            if (v.isEmpty()) {
+                v = null;
             }
             return v;
         });
