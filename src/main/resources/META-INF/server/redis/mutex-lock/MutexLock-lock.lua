@@ -21,13 +21,14 @@ if (ttl == -1 or ttl > liveTime) then
     ttl = liveTime;
     redis.call('pexpire', lockKey, ttl);
 end
--- 如果锁已被其他locker占有，则加锁失败
-if (owner ~= lockerId) then
-    return math.max(ttl, 0);
+-- 计算等待时间
+local waitTime = ttl;
+if (owner == lockerId) then
+    -- 加锁成功，保证锁的有效期
+    if (ttl ~= liveTime) then
+        ttl = liveTime;
+        redis.call('pexpire', lockKey, ttl);
+    end
+    waitTime = nil;
 end
--- 加锁成功，保证锁的有效期
-if (ttl ~= liveTime) then
-    ttl = liveTime;
-    redis.call('pexpire', lockKey, ttl);
-end
-return nil;
+return waitTime;

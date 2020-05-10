@@ -9,11 +9,12 @@
 local lockKey = KEYS[1];
 local lockerId = ARGV[1];
 local liveTime = tonumber(ARGV[2]);
--- 如果不持有锁，则无需维护
+-- 尝试维护
+local alive = false;
 local owner = redis.call('hget', lockKey, 'owner');
-if (owner ~= lockerId) then
-    return false;
+if (owner == lockerId) then
+    -- 维护
+    redis.call('pexpire', lockKey, liveTime);
+    alive = true;
 end
--- 设置有效期
-redis.call('pexpire', lockKey, liveTime);
-return true;
+return alive;
