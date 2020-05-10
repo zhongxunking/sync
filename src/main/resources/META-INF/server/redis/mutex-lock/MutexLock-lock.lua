@@ -24,11 +24,13 @@ end
 -- 计算等待时间
 local waitTime = ttl;
 if (owner == lockerId) then
+    waitTime = nil;
+end
+if (waitTime == nil) then
     -- 加锁成功，保证锁的有效期
     if (ttl ~= liveTime) then
         ttl = liveTime;
         redis.call('pexpire', lockKey, ttl);
     end
-    waitTime = nil;
 end
 return waitTime;
