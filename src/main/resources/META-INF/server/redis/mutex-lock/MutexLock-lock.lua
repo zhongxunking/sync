@@ -26,8 +26,8 @@ local waitTime = ttl;
 if (owner == lockerId) then
     waitTime = nil;
 end
+-- 如果加锁成功，需保证锁的有效期
 if (waitTime == nil) then
-    -- 加锁成功，保证锁的有效期
     if (ttl ~= liveTime) then
         ttl = liveTime;
         redis.call('pexpire', lockKey, ttl);

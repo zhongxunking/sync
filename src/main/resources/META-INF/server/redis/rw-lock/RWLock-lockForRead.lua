@@ -9,9 +9,9 @@
 --   writer: ${lockerId}
 --   readerAmount: ${读者数量}
 --   readerAmountDeadline: ${readerAmount的存活时间}
---   reader-${lockerId1}: ${deadline1}
---   reader-${lockerId2}: ${deadline2}
---   reader-${lockerId3}: ${deadline3}
+--   reader-${lockerId1}: ${readerDeadline1}
+--   reader-${lockerId2}: ${readerDeadline2}
+--   reader-${lockerId3}: ${readerDeadline3}
 
 local lockKey = KEYS[1];
 local lockerId = ARGV[1];
@@ -57,10 +57,10 @@ if (readerAmount == false or readerAmountDeadline == false or readerAmountDeadli
             -- 获取key对应的value
             local value = redis.call('hget', lockKey, key);
             if (value ~= false) then
-                local deadline = tonumber(value);
-                if (deadline >= currentTime) then
+                local readerDeadline = tonumber(value);
+                if (readerDeadline >= currentTime) then
                     readerAmount = readerAmount + 1;
-                    readerAmountDeadline = math.min(readerAmountDeadline, deadline);
+                    readerAmountDeadline = math.min(readerAmountDeadline, readerDeadline);
                 else
                     redis.call('hdel', lockKey, key);
                 end
@@ -72,48 +72,49 @@ if (readerAmount == false or readerAmountDeadline == false or readerAmountDeadli
     redis.call('hset', lockKey, 'readerAmountDeadline', readerAmountDeadline);
 end
 -- 尝试加读锁
-local waitTime = ttl;
+local addReader = false;
 if (owner == 'none' or owner == 'readers') then
     -- 如果writer未预订或预订无效，则加读锁
     if (writerBooking == false or writerBooking < currentTime) then
         -- 更新owner
         owner = 'readers';
         redis.call('hset', lockKey, 'owner', owner);
-        -- 添加reader
-        local readerKey = 'reader-' .. lockerId;
-        local deadline = redis.call('hget', lockKey, readerKey);
-        if (deadline == false) then
-            readerAmount = readerAmount + 1;
-            redis.call('hset', lockKey, 'readerAmount', readerAmount);
-        end
-        deadline = currentTime + liveTime;
-        redis.call('hset', lockKey, readerKey, deadline);
         -- 删除writerBooking
+        writerBooking = false;
         redis.call('hdel', lockKey, 'writerBooking');
 
-        waitTime = nil;
+        addReader = true;
     end
-else
+elseif (owner == 'writer') then
     local writer = redis.call('hget', lockKey, 'writer');
     if (lockerId == writer) then
         -- 更新owner
         owner = 'reader-writer';
         redis.call('hset', lockKey, 'owner', owner);
+
+        addReader = true;
+    end
+end
+-- 计算等待时间
+local waitTime = ttl;
+local readerKey = 'reader-' .. lockerId;
+local readerDeadline = redis.call('hget', lockKey, readerKey);
+if (readerDeadline ~= false) then
+    waitTime = nil;
+else
+    if (addReader == true) then
         -- 添加reader
-        local readerKey = 'reader-' .. lockerId;
-        local deadline = redis.call('hget', lockKey, readerKey);
-        if (deadline == false) then
-            readerAmount = readerAmount + 1;
-            redis.call('hset', lockKey, 'readerAmount', readerAmount);
-        end
-        deadline = currentTime + liveTime;
-        redis.call('hset', lockKey, readerKey, deadline);
+        readerDeadline = currentTime + liveTime;
+        redis.call('hset', lockKey, readerKey, readerDeadline);
+        -- 更新readerAmount
+        readerAmount = readerAmount + 1;
+        redis.call('hset', lockKey, 'readerAmount', readerAmount);
 
         waitTime = nil;
     end
 end
+-- 如果加锁成功，需保证锁的有效期
 if (waitTime == nil) then
-    -- 加锁成功，保证锁的有效期
     if (ttl ~= liveTime) then
         ttl = liveTime;
         redis.call('pexpire', lockKey, ttl);
