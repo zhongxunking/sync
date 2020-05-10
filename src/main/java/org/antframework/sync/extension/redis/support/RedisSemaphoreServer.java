@@ -44,12 +44,12 @@ public class RedisSemaphoreServer {
      * 获取许可
      *
      * @param key          信号量标识
-     * @param totalPermits 许可总数
-     * @param newPermits   新许可数
      * @param semaphorerId 获取信号量许可者id
+     * @param newPermits   新许可数
+     * @param totalPermits 许可总数
      * @return null 获取成功；否则返回需等待的时间（毫秒）
      */
-    public Long acquire(String key, int totalPermits, int newPermits, String semaphorerId) {
+    public Long acquire(String key, String semaphorerId, int newPermits, int totalPermits) {
         String redisKey = computeRedisKey(key);
         long currentTime = System.currentTimeMillis();
         String syncChannel = computeSyncChannel(key);
@@ -57,13 +57,13 @@ public class RedisSemaphoreServer {
                 UPDATE_PERMITS_SCRIPT,
                 Collections.singletonList(redisKey),
                 Arrays.asList(
-                        totalPermits,
-                        newPermits,
                         semaphorerId,
+                        newPermits,
+                        totalPermits,
                         currentTime,
                         syncChannel,
-                        false,
-                        liveTime),
+                        liveTime,
+                        false),
                 Long.class);
         if (waitTime == null && newPermits > 0) {
             maintainer.add(key, semaphorerId);
@@ -75,11 +75,11 @@ public class RedisSemaphoreServer {
      * 释放许可
      *
      * @param key          信号量标识
-     * @param totalPermits 许可总数
-     * @param newPermits   新许可数
      * @param semaphorerId 获取信号量许可者id
+     * @param newPermits   新许可数
+     * @param totalPermits 许可总数
      */
-    public void release(String key, int totalPermits, int newPermits, String semaphorerId) {
+    public void release(String key, String semaphorerId, int newPermits, int totalPermits) {
         if (newPermits <= 0) {
             maintainer.remove(key, semaphorerId);
         }
@@ -91,13 +91,13 @@ public class RedisSemaphoreServer {
                     UPDATE_PERMITS_SCRIPT,
                     Collections.singletonList(redisKey),
                     Arrays.asList(
-                            totalPermits,
-                            newPermits,
                             semaphorerId,
+                            newPermits,
+                            totalPermits,
                             currentTime,
                             syncChannel,
-                            true,
-                            liveTime),
+                            liveTime,
+                            true),
                     Long.class);
         } catch (Throwable e) {
             log.error("调用redis释放信号量许可出错：", e);

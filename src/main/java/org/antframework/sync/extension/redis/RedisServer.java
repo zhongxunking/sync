@@ -84,13 +84,13 @@ public class RedisServer implements Server {
     }
 
     @Override
-    public Long acquireForSemaphore(String key, int totalPermits, int newPermits, String semaphorerId, long deadline) {
-        return semaphoreServer.acquire(key, totalPermits, newPermits, semaphorerId);
+    public Long acquireForSemaphore(String key, String semaphorerId, int newPermits, int totalPermits, long deadline) {
+        return semaphoreServer.acquire(key, semaphorerId, newPermits, totalPermits);
     }
 
     @Override
-    public void releaseForSemaphore(String key, int totalPermits, int newPermits, String semaphorerId) {
-        semaphoreServer.release(key, totalPermits, newPermits, semaphorerId);
+    public void releaseForSemaphore(String key, String semaphorerId, int newPermits, int totalPermits) {
+        semaphoreServer.release(key, semaphorerId, newPermits, totalPermits);
     }
 
     @Override

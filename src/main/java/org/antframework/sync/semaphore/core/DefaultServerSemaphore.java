@@ -31,11 +31,11 @@ public class DefaultServerSemaphore extends AbstractServerSemaphore {
 
     @Override
     protected SyncWaiter acquireInServer(int newPermits, long deadline) {
-        return server.acquire(getKey(), getTotalPermits(), newPermits, getSemaphorerId(), deadline);
+        return server.acquire(getKey(), getSemaphorerId(), newPermits, getTotalPermits(), deadline);
     }
 
     @Override
     protected void releaseInServer(int newPermits) {
-        server.release(getKey(), getTotalPermits(), newPermits, getSemaphorerId());
+        server.release(getKey(), getSemaphorerId(), newPermits, getTotalPermits());
     }
 }

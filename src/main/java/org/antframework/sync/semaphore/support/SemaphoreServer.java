@@ -37,19 +37,19 @@ public class SemaphoreServer {
      * 获取许可
      *
      * @param key          信号量标识
-     * @param totalPermits 许可总数
-     * @param newPermits   新许可数
      * @param semaphorerId 获取信号量许可者id
+     * @param newPermits   新许可数
+     * @param totalPermits 许可总数
      * @param deadline     截止时间
      * @return null 获取成功；否则返回需等待的时间
      */
-    public SyncWaiter acquire(String key, int totalPermits, int newPermits, String semaphorerId, long deadline) {
+    public SyncWaiter acquire(String key, String semaphorerId, int newPermits, int totalPermits, long deadline) {
         Long waitTime = maxWaitTime;
         int oldPermits = finiteResource.peek(key, semaphorerId);
         boolean localSuccess = finiteResource.acquire(key, semaphorerId, newPermits, totalPermits);
         if (localSuccess) {
             try {
-                waitTime = server.acquireForSemaphore(key, totalPermits, newPermits, semaphorerId, deadline);
+                waitTime = server.acquireForSemaphore(key, semaphorerId, newPermits, totalPermits, deadline);
             } finally {
                 if (waitTime != null) {
                     finiteResource.release(key, semaphorerId, oldPermits);
@@ -68,13 +68,13 @@ public class SemaphoreServer {
      * 释放许可
      *
      * @param key          信号量标识
-     * @param totalPermits 许可总数
-     * @param newPermits   新许可数
      * @param semaphorerId 获取信号量许可者id
+     * @param newPermits   新许可数
+     * @param totalPermits 许可总数
      */
-    public void release(String key, int totalPermits, int newPermits, String semaphorerId) {
+    public void release(String key, String semaphorerId, int newPermits, int totalPermits) {
         finiteResource.release(key, semaphorerId, newPermits);
-        server.releaseForSemaphore(key, totalPermits, newPermits, semaphorerId);
+        server.releaseForSemaphore(key, semaphorerId, newPermits, totalPermits);
     }
 
     /**

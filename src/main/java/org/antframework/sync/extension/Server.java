@@ -70,23 +70,23 @@ public interface Server {
      * 获取信号量许可
      *
      * @param key          信号量标识
-     * @param totalPermits 许可总数
-     * @param newPermits   新许可数
      * @param semaphorerId 获取信号量许可者id
+     * @param newPermits   新许可数
+     * @param totalPermits 许可总数
      * @param deadline     截止时间
      * @return null 获取成功；否则返回需等待的时间（毫秒）
      */
-    Long acquireForSemaphore(String key, int totalPermits, int newPermits, String semaphorerId, long deadline);
+    Long acquireForSemaphore(String key, String semaphorerId, int newPermits, int totalPermits, long deadline);
 
     /**
      * 释放信号量许可
      *
      * @param key          信号量标识
-     * @param totalPermits 许可总数
-     * @param newPermits   新许可数
      * @param semaphorerId 获取信号量许可者id
+     * @param newPermits   新许可数
+     * @param totalPermits 许可总数
      */
-    void releaseForSemaphore(String key, int totalPermits, int newPermits, String semaphorerId);
+    void releaseForSemaphore(String key, String semaphorerId, int newPermits, int totalPermits);
 
     /**
      * 新增同步监听器
