@@ -152,7 +152,7 @@ public class LocalRWLockServer {
                     readers.add(lockerId);
                     writerBooking = null;
                 }
-            } else {
+            } else if (owner == LockOwner.WRITER) {
                 if (Objects.equals(lockerId, writer)) {
                     owner = LockOwner.READER_WRITER;
                     readers.add(lockerId);
