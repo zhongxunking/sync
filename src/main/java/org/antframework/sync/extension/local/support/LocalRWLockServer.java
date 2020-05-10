@@ -50,7 +50,7 @@ public class LocalRWLockServer {
      * @param lockerId 加锁者id
      */
     public void unlockForRead(String key, String lockerId) {
-        visitTemplate(key, rwLock -> rwLock.unlockForRead(lockerId, key));
+        visitTemplate(key, rwLock -> rwLock.unlockForRead(lockerId));
     }
 
     /**
@@ -78,14 +78,14 @@ public class LocalRWLockServer {
      * @param lockerId 加锁者id
      */
     public void unlockForWrite(String key, String lockerId) {
-        visitTemplate(key, rwLock -> rwLock.unlockForWrite(lockerId, key));
+        visitTemplate(key, rwLock -> rwLock.unlockForWrite(lockerId));
     }
 
     // 访问模版方法
     private void visitTemplate(String key, Consumer<RWLock> visitor) {
         rwLocks.compute(key, (k, v) -> {
             if (v == null) {
-                v = new RWLock();
+                v = new RWLock(k);
             }
             visitor.accept(v);
             if (v.isEmpty()) {
@@ -129,6 +129,8 @@ public class LocalRWLockServer {
 
     // 读写锁
     private class RWLock {
+        // 锁标识
+        private final String key;
         // 持有者
         private LockOwner owner = LockOwner.NONE;
         // 写者预定截止时间
@@ -137,6 +139,10 @@ public class LocalRWLockServer {
         private String writer = null;
         // 读者
         private final Set<String> readers = new HashSet<>();
+
+        public RWLock(String key) {
+            this.key = key;
+        }
 
         // 加读锁
         boolean lockForRead(String lockerId) {
@@ -156,7 +162,7 @@ public class LocalRWLockServer {
         }
 
         // 解读锁
-        void unlockForRead(String lockerId, String key) {
+        void unlockForRead(String lockerId) {
             if (owner == LockOwner.READERS || owner == LockOwner.READER_WRITER) {
                 readers.remove(lockerId);
                 if (readers.isEmpty()) {
@@ -191,7 +197,7 @@ public class LocalRWLockServer {
         }
 
         // 解写锁
-        void unlockForWrite(String lockerId, String key) {
+        void unlockForWrite(String lockerId) {
             if (owner == LockOwner.WRITER || owner == LockOwner.READER_WRITER) {
                 if (Objects.equals(lockerId, writer)) {
                     writer = null;
