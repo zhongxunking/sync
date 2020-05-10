@@ -9,7 +9,7 @@
 local lockKey = KEYS[1];
 local lockerId = ARGV[1];
 local liveTime = tonumber(ARGV[2]);
--- 如果锁不存在，则抢占锁
+-- 尝试加锁
 local owner = redis.call('hget', lockKey, 'owner');
 if (owner == false) then
     owner = lockerId;
