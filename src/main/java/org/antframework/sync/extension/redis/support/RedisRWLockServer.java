@@ -107,10 +107,11 @@ public class RedisRWLockServer {
      */
     public Long lockForWrite(String key, String lockerId, long deadline) {
         String redisKey = computeRedisKey(key);
+        long currentTime = System.currentTimeMillis();
         Long waitTime = redisExecutor.eval(
                 LOCK_FOR_WRITE_SCRIPT,
                 Collections.singletonList(redisKey),
-                Arrays.asList(lockerId, deadline, liveTime),
+                Arrays.asList(lockerId, deadline, currentTime, liveTime),
                 Long.class);
         if (waitTime == null) {
             writeLockMaintainer.add(key, lockerId);
