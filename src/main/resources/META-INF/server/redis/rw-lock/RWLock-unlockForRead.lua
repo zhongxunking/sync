@@ -22,11 +22,6 @@ local owner = redis.call('hget', lockKey, 'owner');
 if (owner == false) then
     return false;
 end
--- 获取writerBooking
-local writerBooking = redis.call('hget', lockKey, 'writerBooking');
-if (writerBooking ~= false) then
-    writerBooking = tonumber(writerBooking);
-end
 -- 获取readerAmount
 local readerAmount = redis.call('hget', lockKey, 'readerAmount');
 if (readerAmount ~= false) then
@@ -60,6 +55,11 @@ if (owner == 'readers' or owner == 'reader-writer') then
     end
 end
 if (owner == 'none') then
+    -- 获取writerBooking
+    local writerBooking = redis.call('hget', lockKey, 'writerBooking');
+    if (writerBooking ~= false) then
+        writerBooking = tonumber(writerBooking);
+    end
     if (writerBooking == false or writerBooking < currentTime) then
         redis.call('del', lockKey);
     end
