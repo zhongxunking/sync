@@ -108,7 +108,7 @@ end
 -- 计算等待时间
 local waitTime = ttl;
 if (writerBooking ~= false) then
-    waitTime = math.min(waitTime, writerBooking);
+    waitTime = math.min(waitTime, writerBooking - currentTime);
 end
 local readerKey = 'reader-' .. lockerId;
 local readerDeadline = redis.call('hget', lockKey, readerKey);
