@@ -81,12 +81,13 @@ public class RedisRWLockServer {
     public void unlockForRead(String key, String lockerId) {
         readLockMaintainer.remove(key, lockerId);
         String redisKey = computeRedisKey(key);
+        long currentTime = System.currentTimeMillis();
         String syncChannel = computeSyncChannel(key);
         try {
             boolean success = redisExecutor.eval(
                     UNLOCK_FOR_READ_SCRIPT,
                     Collections.singletonList(redisKey),
-                    Arrays.asList(lockerId, syncChannel),
+                    Arrays.asList(lockerId, currentTime, syncChannel),
                     Boolean.class);
             if (!success) {
                 log.error("调用redis解读锁失败（锁不存在或已经易主），可能已经发生并发问题：key={},lockerId={}", key, lockerId);
