@@ -2,7 +2,7 @@
 -- ARGV: semaphorerId, newPermits, totalPermits, currentTime, syncChannel, liveTime, force
 -- return: nil（成功）；waitingTime（失败，需等待的时间）
 
--- 数据结构
+-- 数据结构（hash）
 -- ${semaphoreKey}:
 --   allPermits: ${所有permits}
 --   allPermitsDeadline: ${allPermits的存活时间}
