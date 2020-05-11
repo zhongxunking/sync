@@ -8,10 +8,7 @@
  */
 package org.antframework.sync.extension.local.support;
 
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Set;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -21,10 +18,16 @@ import java.util.function.Consumer;
  * 本地读写锁服务端
  */
 public class LocalRWLockServer {
+    // 定时触发器
+    private final Timer timer = new Timer("LocalRWLockServer-clearEmptyRWLock", true);
     // 监听器管理器
     private final ListenerManager listenerManager = new ListenerManager();
     // 所有读写者
     private final Map<String, RWLock> rwLocks = new ConcurrentHashMap<>();
+
+    public LocalRWLockServer() {
+        this.timer.schedule(new ClearRWLockTask(), 5 * 60 * 1000, 5 * 60 * 1000);
+    }
 
     /**
      * 加读锁
@@ -214,6 +217,16 @@ public class LocalRWLockServer {
         // 是否为空
         boolean isEmpty() {
             return owner == LockOwner.NONE && (writerBooking == null || writerBooking < System.currentTimeMillis());
+        }
+    }
+
+    // 清理读写锁任务
+    private class ClearRWLockTask extends TimerTask {
+        @Override
+        public void run() {
+            Set<String> keys = new HashSet<>(rwLocks.keySet());
+            keys.forEach(key -> visitTemplate(key, rwLock -> {
+            }));
         }
     }
 }
