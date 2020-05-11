@@ -1,37 +1,46 @@
 -- KEYS: lockKey
--- ARGV: writerId（不能包含'|'） messageChannel
--- return: true（正常解锁）；false（非正常解锁）
+-- ARGV: lockerId, syncChannel
+-- return: true（成功）；false（失败，锁不存在或已经易主）
 
--- 数据结构
--- lockKey:
---   owner: none、reader、writer、reader-writer
---   writerBooking: 写者预定截止时间
---   writer: writerId
---   readers: |readerId1||readerId2||readerId3|
+-- 数据结构（hash）
+-- ${lockKey}:
+--   owner: none、writer、readers、reader-writer
+--   writerBooking: ${writerBooking}
+--   writer: ${lockerId}
+--   readerAmount: ${读者数量}
+--   readerAmountDeadline: ${readerAmount的存活时间}
+--   reader-${lockerId1}: ${readerDeadline1}
+--   reader-${lockerId2}: ${readerDeadline2}
+--   reader-${lockerId3}: ${readerDeadline3}
 
 local lockKey = KEYS[1];
-local writerId = ARGV[1];
-local messageChannel = ARGV[2];
--- 如果不持有锁，则无需解锁
+local lockerId = ARGV[1];
+local syncChannel = ARGV[2];
+-- 获取owner
 local owner = redis.call('hget', lockKey, 'owner');
-if (owner ~= 'writer' and owner ~= 'reader-writer') then
-    redis.call('publish', messageChannel, 0);
+if (owner == false) then
     return false;
 end
-local writer = redis.call('hget', lockKey, 'writer');
-if (writer ~= writerId) then
-    return false;
+-- 尝试解读锁
+local success = false;
+if (owner == 'writer' or owner == 'reader-writer') then
+    -- 获取writer
+    local writer = redis.call('hget', lockKey, 'writer');
+    if (lockerId == writer) then
+        -- 删除writer
+        writer = nil;
+        redis.call('hdel', lockKey, 'writer');
+        if (owner == 'writer') then
+            -- 删除锁
+            redis.call('del', lockKey);
+        else
+            -- 更新owner
+            owner = 'readers';
+            redis.call('hset', lockKey, 'owner', owner);
+        end
+        success = true;
+    end
 end
--- 解锁
-if (owner == 'writer') then
-    -- 删除锁记录
-    redis.call('del', lockKey);
-else
-    -- 如果存在当前读者，则无需解锁
-    owner = 'reader';
-    redis.call('hset', lockKey, 'owner', owner);
-    redis.call('hdel', lockKey, 'writer');
-end
--- 解锁成功，发布解锁消息
-redis.call('publish', messageChannel, 0);
-return true;
+-- 发布同步消息
+redis.call('publish', syncChannel, 0);
+return success;
