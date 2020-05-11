@@ -29,6 +29,11 @@ if (ttl == -1 or ttl > liveTime) then
     ttl = liveTime;
     redis.call('pexpire', lockKey, ttl);
 end
+-- 获取writerBooking
+local writerBooking = redis.call('hget', lockKey, 'writerBooking');
+if (writerBooking ~= false) then
+    writerBooking = tonumber(writerBooking);
+end
 -- 获取readerAmount及其有效期
 local readerAmount = redis.call('hget', lockKey, 'readerAmount');
 if (readerAmount ~= false) then
@@ -78,11 +83,6 @@ end
 -- 尝试加读锁
 local addReader = false;
 if (owner == 'none' or owner == 'readers') then
-    -- 获取writerBooking
-    local writerBooking = redis.call('hget', lockKey, 'writerBooking');
-    if (writerBooking ~= false) then
-        writerBooking = tonumber(writerBooking);
-    end
     -- 如果writer未预订或预订无效，则加读锁
     if (writerBooking == false or writerBooking < currentTime) then
         -- 更新owner
@@ -107,6 +107,9 @@ elseif (owner == 'writer') then
 end
 -- 计算等待时间
 local waitTime = ttl;
+if (writerBooking ~= false) then
+    waitTime = math.min(waitTime, writerBooking);
+end
 local readerKey = 'reader-' .. lockerId;
 local readerDeadline = redis.call('hget', lockKey, readerKey);
 if (readerDeadline ~= false) then
