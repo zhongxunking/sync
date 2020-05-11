@@ -71,6 +71,15 @@ if (readerAmount == false or readerAmountDeadline == false or readerAmountDeadli
     redis.call('hset', lockKey, 'readerAmount', readerAmount);
     redis.call('hset', lockKey, 'readerAmountDeadline', readerAmountDeadline);
 end
+if (readerAmount <= 0) then
+    if (owner == 'readers') then
+        owner = 'none';
+        redis.call('hset', lockKey, 'owner', owner);
+    elseif (owner == 'reader-writer') then
+        owner = 'writer';
+        redis.call('hset', lockKey, 'owner', owner);
+    end
+end
 -- 尝试加读锁
 local addReader = false;
 if (owner == 'none' or owner == 'readers') then
