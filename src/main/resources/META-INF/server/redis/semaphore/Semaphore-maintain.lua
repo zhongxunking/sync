@@ -1,33 +1,34 @@
 -- KEYS: semaphoreKey
--- ARGV: semaphoreId currentTime activeTimeout
--- return: true（成功）；false（失败）
+-- ARGV: semaphorerId, currentTime, liveTime
+-- return: true（成功）；false（失败，信号量不存在或已经不持有许可）
 
--- 数据结构
+-- 数据结构（hash）
 -- ${semaphoreKey}:
---   allPermits: ${所有semaphore的permits之和}
---   allPermitsDeadline: ${permits的存活时间}
---   semaphore-${semaphoreId}: ${permits}|${deadline}
+--   allPermits: ${所有permits}
+--   allPermitsDeadline: ${allPermits的存活时间}
+--   semaphorer-${semaphorerId1}: ${permits1}|${deadline1}
+--   semaphorer-${semaphorerId2}: ${permits2}|${deadline2}
+--   semaphorer-${semaphorerId3}: ${permits3}|${deadline3}
 
 local semaphoreKey = KEYS[1];
-local semaphoreId = ARGV[1];
+local semaphorerId = ARGV[1];
 local currentTime = tonumber(ARGV[2]);
-local activeTimeout = tonumber(ARGV[3]);
--- 获取客户端已得到的许可数
-local permits = 0;
-local value = redis.call('hget', semaphoreKey, 'semaphore-' .. semaphoreId);
-if (value ~= false) then
-    local separatorIndex = string.find(value, '|', 1, true);
-    if (separatorIndex ~= nil) then
-        permits = tonumber(string.sub(value, 1, separatorIndex - 1));
-    end
+local liveTime = tonumber(ARGV[3]);
+-- 尝试维护
+local alive = false;
+local semaphorerKey = 'semaphorer-' .. semaphorerId;
+local semaphorerValue = redis.call('hget', semaphoreKey, semaphorerKey);
+if (semaphorerValue ~= false) then
+    -- 解析permits
+    local separatorIndex = string.find(semaphorerValue, '|', 1, true);
+    local permits = tonumber(string.sub(semaphorerValue, 1, separatorIndex - 1));
+    -- 维护semaphorer
+    local deadline = currentTime + liveTime;
+    semaphorerValue = permits .. '|' .. deadline;
+    redis.call('hset', semaphoreKey, semaphorerKey, semaphorerValue);
+    -- 维护信号量
+    redis.call('pexpire', semaphoreKey, liveTime);
+
+    alive = true;
 end
--- 如果客户端不持有许可，则无需再维护
-if (permits <= 0) then
-    return false;
-end
--- 更新客户端持有许可的有效期
-local deadline = currentTime + activeTimeout;
-redis.call('hset', semaphoreKey, 'semaphore-' .. semaphoreId, permits .. '|' .. deadline);
--- 更新信号量的有效期
-redis.call('pexpire', semaphoreKey, activeTimeout);
-return true;
+return alive;
