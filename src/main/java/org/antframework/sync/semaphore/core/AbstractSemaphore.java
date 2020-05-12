@@ -67,7 +67,7 @@ public abstract class AbstractSemaphore implements Semaphore {
             if (time <= 0) {
                 return false;
             }
-            waiter.waitSync(time, TimeUnit.MILLISECONDS);
+            waiter.waitSync(time);
             waiter = acquirePermits(permits, deadline);
         }
         return true;

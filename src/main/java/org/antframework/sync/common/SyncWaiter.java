@@ -8,8 +8,6 @@
  */
 package org.antframework.sync.common;
 
-import java.util.concurrent.TimeUnit;
-
 /**
  * 同步等待器
  */
@@ -17,9 +15,8 @@ public interface SyncWaiter {
     /**
      * 等待同步
      *
-     * @param timeout 等待超时时间
-     * @param unit    时间单位
+     * @param timeout 等待超时时间（毫秒）
      * @return true 等到同步; false 等待超时
      */
-    boolean waitSync(long timeout, TimeUnit unit) throws InterruptedException;
+    boolean waitSync(long timeout) throws InterruptedException;
 }

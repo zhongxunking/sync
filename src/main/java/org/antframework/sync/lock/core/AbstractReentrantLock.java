@@ -58,7 +58,7 @@ public abstract class AbstractReentrantLock implements Lock {
             if (timeout <= 0) {
                 return false;
             }
-            waiter.waitSync(timeout, TimeUnit.MILLISECONDS);
+            waiter.waitSync(timeout);
             waiter = acquireLock(deadline);
         }
         return true;

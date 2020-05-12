@@ -10,8 +10,6 @@ package org.antframework.sync.common;
 
 import lombok.AllArgsConstructor;
 
-import java.util.concurrent.TimeUnit;
-
 /**
  * 基于服务端的同步等待器
  */
@@ -27,8 +25,8 @@ public class ServerSyncWaiter implements SyncWaiter {
     private final long maxWaitTime;
 
     @Override
-    public boolean waitSync(long timeout, TimeUnit unit) throws InterruptedException {
-        long time = Math.min(unit.toMillis(timeout), maxWaitTime);
+    public boolean waitSync(long timeout) throws InterruptedException {
+        long time = Math.min(timeout, maxWaitTime);
         return syncManager.waitSync(key, waiter, time);
     }
 
