@@ -58,13 +58,11 @@ public class ServerSyncManager {
      * @param waiter 等待者
      */
     public void removeWaiter(String key, String waiter) {
-        syncListeners.compute(key, (k, v) -> {
-            if (v != null) {
-                v.removeWaiter(waiter);
-                if (v.getWaiterAmount() <= 0) {
-                    server.removeSyncListener(syncType, k, v);
-                    v = null;
-                }
+        syncListeners.computeIfPresent(key, (k, v) -> {
+            v.removeWaiter(waiter);
+            if (v.getWaiterAmount() <= 0) {
+                server.removeSyncListener(syncType, k, v);
+                v = null;
             }
             return v;
         });
