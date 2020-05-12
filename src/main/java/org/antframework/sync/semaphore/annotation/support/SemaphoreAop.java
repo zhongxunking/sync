@@ -38,8 +38,8 @@ public class SemaphoreAop implements Ordered {
     private final ExpressionEvaluator evaluator = new ExpressionEvaluator();
     // 信号量上下文
     private final SemaphoreContext semaphoreContext;
-    // 许可总数提供者
-    private final Function<String, Integer> totalPermitsSupplier;
+    // 许可总数转换器
+    private final Function<String, Integer> totalPermitsFunction;
     // 优先级
     private final int order;
 
@@ -84,7 +84,7 @@ public class SemaphoreAop implements Ordered {
             throw new IllegalArgumentException(String.format("key不能为null（key表达式可能有错误）：method=%s,信号量注解=%s", method, annotation));
         }
         // 获取许可
-        Semaphore semaphore = semaphoreContext.getSemaphore(key.toString(), totalPermitsSupplier.apply(key.toString()));
+        Semaphore semaphore = semaphoreContext.getSemaphore(key.toString(), totalPermitsFunction.apply(key.toString()));
         if (timeout < 0) {
             semaphore.acquire(permits);
         } else {
