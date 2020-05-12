@@ -11,11 +11,14 @@ package org.antframework.sync.boot;
 import lombok.Getter;
 import lombok.Setter;
 import org.springframework.boot.context.properties.ConfigurationProperties;
+import org.springframework.core.Ordered;
 import org.springframework.validation.annotation.Validated;
 
 import javax.validation.Valid;
 import javax.validation.constraints.Min;
 import javax.validation.constraints.NotNull;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * Sync配置
@@ -25,6 +28,16 @@ import javax.validation.constraints.NotNull;
 @Getter
 @Setter
 public class SyncProperties {
+    /**
+     * 选填：@Lock、@ReadLock、@WriteLock、@Semaphore切面执行的优先级（默认比@Transactional先执行）
+     */
+    private int aopOrder = Ordered.LOWEST_PRECEDENCE - 10;
+    /**
+     * 信号量配置
+     */
+    @NotNull
+    @Valid
+    private Semaphore semaphore = new Semaphore();
     /**
      * 选填：等待同步消息的最长时间（毫秒，默认为30秒）
      */
@@ -41,6 +54,19 @@ public class SyncProperties {
     @NotNull
     @Valid
     private Redis redis = new Redis();
+
+    /**
+     * 信号量配置
+     */
+    @Getter
+    @Setter
+    public static class Semaphore {
+        /**
+         * key对应的总许可数
+         */
+        @NotNull
+        private Map<String, Integer> keyTotalPermits = new HashMap<>();
+    }
 
     /**
      * 服务端类型
