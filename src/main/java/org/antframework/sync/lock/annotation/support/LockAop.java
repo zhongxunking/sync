@@ -116,7 +116,7 @@ public class LockAop implements Ordered {
             // 指定超时时间加锁
             boolean success = lock.tryLock(timeout, TimeUnit.MILLISECONDS);
             if (!success) {
-                throw new TimeoutException(String.format("等待加锁超时：method=%s,锁注解=%s,key=%s", method, annotation, key));
+                throw new TimeoutException(String.format("加锁失败：method=%s,锁注解=%s,key=%s", method, annotation, key));
             }
         }
         try {

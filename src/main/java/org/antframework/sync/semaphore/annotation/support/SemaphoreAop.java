@@ -90,7 +90,7 @@ public class SemaphoreAop implements Ordered {
         } else {
             boolean success = semaphore.tryAcquire(permits, timeout, TimeUnit.MILLISECONDS);
             if (!success) {
-                throw new TimeoutException(String.format("获取许可超时：method=%s,信号量注解=%s,key=%s", method, annotation, key));
+                throw new TimeoutException(String.format("获取许可失败：method=%s,信号量注解=%s,key=%s", method, annotation, key));
             }
         }
         try {
