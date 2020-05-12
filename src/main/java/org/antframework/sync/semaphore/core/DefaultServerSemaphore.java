@@ -38,4 +38,9 @@ public class DefaultServerSemaphore extends AbstractServerSemaphore {
     protected void releaseInServer(int newPermits) {
         server.release(getKey(), getSemaphorerId(), newPermits, getTotalPermits());
     }
+
+    @Override
+    public String toString() {
+        return String.format("DefaultServerSemaphore{acquiredPermits=%d,key=%s,semaphorerId=%s,totalPermits=%d}", getAcquiredPermits(), getKey(), getSemaphorerId(), getTotalPermits());
+    }
 }

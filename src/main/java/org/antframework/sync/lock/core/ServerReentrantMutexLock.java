@@ -38,4 +38,9 @@ public class ServerReentrantMutexLock extends AbstractServerReentrantLock {
     protected void unlockInServer() {
         server.unlock(getKey(), getLockerId());
     }
+
+    @Override
+    public String toString() {
+        return String.format("ServerReentrantMutexLock{lockedTimes=%d,key=%s,lockerId=%s}", getLockedTimes(), getKey(), getLockerId());
+    }
 }

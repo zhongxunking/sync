@@ -38,4 +38,9 @@ public class ServerReentrantReadLock extends AbstractServerReentrantLock {
     protected void unlockInServer() {
         server.unlockForRead(getKey(), getLockerId());
     }
+
+    @Override
+    public String toString() {
+        return String.format("ServerReentrantReadLock{lockedTimes=%d,key=%s,lockerId=%s}", getLockedTimes(), getKey(), getLockerId());
+    }
 }
