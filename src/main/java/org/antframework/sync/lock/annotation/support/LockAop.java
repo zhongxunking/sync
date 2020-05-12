@@ -87,7 +87,7 @@ public class LockAop implements Ordered {
                         Function<String, Lock> lockFunction,
                         Object annotation) throws Throwable {
         // 准备数据
-        Class<?> targetClass = getTargetClass(pjp.getThis());
+        Class<?> targetClass = AopProxyUtils.ultimateTargetClass(pjp.getThis());
         Method method = getMethod(pjp, annotation);
         EvaluationContext evalContext = evaluator.getEvalContext(
                 targetClass,
@@ -125,15 +125,6 @@ public class LockAop implements Ordered {
             // 解锁
             lock.unlock();
         }
-    }
-
-    // 获取目标类
-    private Class<?> getTargetClass(Object target) {
-        Class<?> targetClass = AopProxyUtils.ultimateTargetClass(target);
-        if (targetClass == null) {
-            targetClass = target.getClass();
-        }
-        return targetClass;
     }
 
     // 获取方法
