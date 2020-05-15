@@ -46,7 +46,7 @@ public class LockAop implements Ordered {
     // @Lock切面
     @Around("@annotation(lockAnnotation)")
     public Object lock(ProceedingJoinPoint pjp, org.antframework.sync.lock.annotation.Lock lockAnnotation) throws Throwable {
-        return lock(
+        return doAop(
                 pjp,
                 lockAnnotation.condition(),
                 lockAnnotation.key(),
@@ -58,7 +58,7 @@ public class LockAop implements Ordered {
     // @ReadLock切面
     @Around("@annotation(readLockAnnotation)")
     public Object readLock(ProceedingJoinPoint pjp, ReadLock readLockAnnotation) throws Throwable {
-        return lock(
+        return doAop(
                 pjp,
                 readLockAnnotation.condition(),
                 readLockAnnotation.key(),
@@ -70,7 +70,7 @@ public class LockAop implements Ordered {
     // @WriteLock切面
     @Around("@annotation(writeLockAnnotation)")
     public Object writeLock(ProceedingJoinPoint pjp, WriteLock writeLockAnnotation) throws Throwable {
-        return lock(
+        return doAop(
                 pjp,
                 writeLockAnnotation.condition(),
                 writeLockAnnotation.key(),
@@ -79,13 +79,13 @@ public class LockAop implements Ordered {
                 writeLockAnnotation);
     }
 
-    // 加锁
-    private Object lock(ProceedingJoinPoint pjp,
-                        String conditionExpression,
-                        String keyExpression,
-                        long timeout,
-                        Function<String, Lock> lockFunction,
-                        Object annotation) throws Throwable {
+    // 执行aop
+    private Object doAop(ProceedingJoinPoint pjp,
+                         String conditionExpression,
+                         String keyExpression,
+                         long timeout,
+                         Function<String, Lock> lockFunction,
+                         Object annotation) throws Throwable {
         // 准备数据
         Class<?> targetClass = AopProxyUtils.ultimateTargetClass(pjp.getThis());
         Method method = getMethod(pjp, annotation);

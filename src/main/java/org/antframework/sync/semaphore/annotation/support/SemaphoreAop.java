@@ -46,7 +46,7 @@ public class SemaphoreAop implements Ordered {
     // @Semaphore切面
     @Around("@annotation(semaphoreAnnotation)")
     public Object semaphore(ProceedingJoinPoint pjp, org.antframework.sync.semaphore.annotation.Semaphore semaphoreAnnotation) throws Throwable {
-        return acquirePermits(
+        return doAop(
                 pjp,
                 semaphoreAnnotation.condition(),
                 semaphoreAnnotation.key(),
@@ -55,13 +55,13 @@ public class SemaphoreAop implements Ordered {
                 semaphoreAnnotation);
     }
 
-    // 获取许可
-    private Object acquirePermits(ProceedingJoinPoint pjp,
-                                  String conditionExpression,
-                                  String keyExpression,
-                                  int permits,
-                                  long timeout,
-                                  Object annotation) throws Throwable {
+    // 执行aop
+    private Object doAop(ProceedingJoinPoint pjp,
+                         String conditionExpression,
+                         String keyExpression,
+                         int permits,
+                         long timeout,
+                         Object annotation) throws Throwable {
         // 准备数据
         Class<?> targetClass = AopProxyUtils.ultimateTargetClass(pjp.getThis());
         Method method = getMethod(pjp, annotation);
