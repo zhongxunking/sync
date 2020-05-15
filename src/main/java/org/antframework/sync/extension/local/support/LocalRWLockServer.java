@@ -8,6 +8,8 @@
  */
 package org.antframework.sync.extension.local.support;
 
+import lombok.RequiredArgsConstructor;
+
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
@@ -131,6 +133,7 @@ public class LocalRWLockServer {
     }
 
     // 读写锁
+    @RequiredArgsConstructor
     private class RWLock {
         // 锁标识
         private final String key;
@@ -142,10 +145,6 @@ public class LocalRWLockServer {
         private String writer = null;
         // 读者
         private final Set<String> readers = new HashSet<>();
-
-        public RWLock(String key) {
-            this.key = key;
-        }
 
         // 加读锁
         boolean lockForRead(String lockerId) {
