@@ -46,4 +46,9 @@ public class ServerReentrantRWLock implements ReadWriteLock {
     public Lock writeLock() {
         return writeLock;
     }
+
+    @Override
+    public String toString() {
+        return String.format("ServerReentrantRWLock{key=%s,lockerId=%s,readLock=%s,writeLock=%s}", key, lockerId, readLock, writeLock);
+    }
 }
