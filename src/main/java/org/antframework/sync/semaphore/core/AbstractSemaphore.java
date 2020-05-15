@@ -57,8 +57,11 @@ public abstract class AbstractSemaphore implements Semaphore {
 
     @Override
     public boolean tryAcquire(int permits, long timeout, TimeUnit unit) throws InterruptedException {
-        if (permits < 0) {
-            throw new IllegalArgumentException("permits必须大于或等于0");
+        if (permits <= 0) {
+            if (permits < 0) {
+                throw new IllegalArgumentException("permits必须大于或等于0");
+            }
+            return true;
         }
         long deadline = System.currentTimeMillis() + unit.toMillis(timeout);
         SyncWaiter waiter = acquirePermits(permits, deadline);
@@ -99,8 +102,11 @@ public abstract class AbstractSemaphore implements Semaphore {
 
     @Override
     public void release(int permits) {
-        if (permits < 0) {
-            throw new IllegalArgumentException("permits必须大于或等于0");
+        if (permits <= 0) {
+            if (permits < 0) {
+                throw new IllegalArgumentException("permits必须大于或等于0");
+            }
+            return;
         }
         releasePermits(permits);
     }
