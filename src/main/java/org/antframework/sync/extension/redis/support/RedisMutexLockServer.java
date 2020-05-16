@@ -25,11 +25,11 @@ import java.util.concurrent.Executor;
 @Slf4j
 public class RedisMutexLockServer {
     // 加锁脚本
-    private static final String LOCK_SCRIPT = SyncUtils.getScript("META-INFO/server/redis/mutex-lock/MutexLock-lock.lua");
+    private static final String LOCK_SCRIPT = SyncUtils.getScript("META-INF/server/redis/mutex-lock/MutexLock-lock.lua");
     // 解锁脚本
-    private static final String UNLOCK_SCRIPT = SyncUtils.getScript("META-INFO/server/redis/mutex-lock/MutexLock-unlock.lua");
+    private static final String UNLOCK_SCRIPT = SyncUtils.getScript("META-INF/server/redis/mutex-lock/MutexLock-unlock.lua");
     // 维护脚本
-    private static final String MAINTAIN_SCRIPT = SyncUtils.getScript("META-INFO/server/redis/mutex-lock/MutexLock-maintain.lua");
+    private static final String MAINTAIN_SCRIPT = SyncUtils.getScript("META-INF/server/redis/mutex-lock/MutexLock-maintain.lua");
     // redis中key的前缀
     private static final String REDIS_KEY_PREFIX = "sync:mutex-lock:";
 

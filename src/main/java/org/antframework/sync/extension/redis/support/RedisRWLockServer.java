@@ -26,17 +26,17 @@ import java.util.concurrent.Executor;
 @Slf4j
 public class RedisRWLockServer {
     // 加读锁脚本
-    private static final String LOCK_FOR_READ_SCRIPT = SyncUtils.getScript("META-INFO/server/redis/rw-lock/RWLock-lockForRead.lua");
+    private static final String LOCK_FOR_READ_SCRIPT = SyncUtils.getScript("META-INF/server/redis/rw-lock/RWLock-lockForRead.lua");
     // 解读锁脚本
-    private static final String UNLOCK_FOR_READ_SCRIPT = SyncUtils.getScript("META-INFO/server/redis/rw-lock/RWLock-unlockForRead.lua");
+    private static final String UNLOCK_FOR_READ_SCRIPT = SyncUtils.getScript("META-INF/server/redis/rw-lock/RWLock-unlockForRead.lua");
     // 维护读锁脚本
-    private static final String MAINTAIN_FOR_READ_SCRIPT = SyncUtils.getScript("META-INFO/server/redis/rw-lock/RWLock-maintainForRead.lua");
+    private static final String MAINTAIN_FOR_READ_SCRIPT = SyncUtils.getScript("META-INF/server/redis/rw-lock/RWLock-maintainForRead.lua");
     // 加写锁脚本
-    private static final String LOCK_FOR_WRITE_SCRIPT = SyncUtils.getScript("META-INFO/server/redis/rw-lock/RWLock-lockForWrite.lua");
+    private static final String LOCK_FOR_WRITE_SCRIPT = SyncUtils.getScript("META-INF/server/redis/rw-lock/RWLock-lockForWrite.lua");
     // 解写锁脚本
-    private static final String UNLOCK_FOR_WRITE_SCRIPT = SyncUtils.getScript("META-INFO/server/redis/rw-lock/RWLock-unlockForWrite.lua");
+    private static final String UNLOCK_FOR_WRITE_SCRIPT = SyncUtils.getScript("META-INF/server/redis/rw-lock/RWLock-unlockForWrite.lua");
     // 维护写锁脚本
-    private static final String MAINTAIN_FOR_WRITE_SCRIPT = SyncUtils.getScript("META-INFO/server/redis/rw-lock/RWLock-maintainForWrite.lua");
+    private static final String MAINTAIN_FOR_WRITE_SCRIPT = SyncUtils.getScript("META-INF/server/redis/rw-lock/RWLock-maintainForWrite.lua");
     // redis中key的前缀
     private static final String REDIS_KEY_PREFIX = "sync:rw-lock:";
 

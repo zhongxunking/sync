@@ -25,9 +25,9 @@ import java.util.concurrent.Executor;
 @Slf4j
 public class RedisSemaphoreServer {
     // 更新许可数脚本
-    private static final String UPDATE_PERMITS_SCRIPT = SyncUtils.getScript("META-INFO/server/redis/semaphore/Semaphore-updatePermits.lua");
+    private static final String UPDATE_PERMITS_SCRIPT = SyncUtils.getScript("META-INF/server/redis/semaphore/Semaphore-updatePermits.lua");
     // 维护脚本
-    private static final String MAINTAIN_SCRIPT = SyncUtils.getScript("META-INFO/server/redis/semaphore/Semaphore-maintain.lua");
+    private static final String MAINTAIN_SCRIPT = SyncUtils.getScript("META-INF/server/redis/semaphore/Semaphore-maintain.lua");
     // redis中key的前缀
     private static final String REDIS_KEY_PREFIX = "sync:semaphore:";
 
