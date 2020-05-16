@@ -28,7 +28,7 @@ if (owner == 'writer' or owner == 'reader-writer') then
     local writer = redis.call('hget', lockKey, 'writer');
     if (lockerId == writer) then
         -- 删除writer
-        writer = nil;
+        writer = false;
         redis.call('hdel', lockKey, 'writer');
         if (owner == 'writer') then
             -- 删除锁
