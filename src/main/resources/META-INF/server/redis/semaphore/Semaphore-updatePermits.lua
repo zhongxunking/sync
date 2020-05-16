@@ -6,9 +6,9 @@
 -- ${semaphoreKey}:
 --   allPermits: ${所有permits}
 --   allPermitsDeadline: ${allPermits的存活时间}
---   semaphorer-${semaphorerId1}: ${permits1}|${deadline1}
---   semaphorer-${semaphorerId2}: ${permits2}|${deadline2}
---   semaphorer-${semaphorerId3}: ${permits3}|${deadline3}
+--   semaphorer-${semaphorerId1}: ${semaphorerPermits1}|${semaphorerDeadline1}
+--   semaphorer-${semaphorerId2}: ${semaphorerPermits2}|${semaphorerDeadline2}
+--   semaphorer-${semaphorerId3}: ${semaphorerPermits3}|${semaphorerDeadline3}
 
 local semaphoreKey = KEYS[1];
 local semaphorerId = ARGV[1];
@@ -43,11 +43,11 @@ if (allPermits == false or allPermitsDeadline == false or allPermitsDeadline < c
             if (value ~= false) then
                 -- 解析出permits、deadline
                 local separatorIndex = string.find(value, '|', 1, true);
-                local permits = tonumber(string.sub(value, 1, separatorIndex - 1));
-                local deadline = tonumber(string.sub(value, separatorIndex + 1));
-                if (deadline >= currentTime) then
-                    allPermits = allPermits + permits;
-                    allPermitsDeadline = math.min(allPermitsDeadline, deadline);
+                local semaphorerPermits = tonumber(string.sub(value, 1, separatorIndex - 1));
+                local semaphorerDeadline = tonumber(string.sub(value, separatorIndex + 1));
+                if (semaphorerDeadline >= currentTime) then
+                    allPermits = allPermits + semaphorerPermits;
+                    allPermitsDeadline = math.min(allPermitsDeadline, semaphorerDeadline);
                 else
                     redis.call('hdel', semaphoreKey, key);
                 end
