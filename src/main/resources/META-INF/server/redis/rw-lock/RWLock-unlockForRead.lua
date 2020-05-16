@@ -36,6 +36,7 @@ if (owner == 'readers' or owner == 'reader-writer') then
     local readerDeadline = redis.call('hget', lockKey, readerKey);
     if (readerDeadline ~= false) then
         -- 删除reader
+        readerDeadline = false;
         redis.call('hdel', lockKey, readerKey);
         -- 更新readerAmount
         readerAmount = readerAmount - 1;
