@@ -12,29 +12,26 @@ import org.springframework.data.redis.serializer.RedisSerializer;
 import org.springframework.data.redis.serializer.SerializationException;
 import org.springframework.lang.Nullable;
 
-import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 
 /**
- * eval命令args和result的序列化器
+ * eval命令redis序列化器
  */
 public class EvalRedisSerializer implements RedisSerializer<Object> {
-    // key编码
-    private static final Charset CHARSET = Charset.forName("utf-8");
-
     @Override
     public byte[] serialize(@Nullable Object o) throws SerializationException {
         if (o == null) {
             return null;
         }
 
-        byte[] key;
+        byte[] bytes;
         if (o instanceof byte[]) {
-            key = (byte[]) o;
+            bytes = (byte[]) o;
         } else {
-            key = o.toString().getBytes(CHARSET);
+            bytes = o.toString().getBytes(StandardCharsets.UTF_8);
         }
 
-        return key;
+        return bytes;
     }
 
     @Override
@@ -42,6 +39,6 @@ public class EvalRedisSerializer implements RedisSerializer<Object> {
         if (bytes == null) {
             return null;
         }
-        return new String(bytes, CHARSET);
+        return new String(bytes, StandardCharsets.UTF_8);
     }
 }

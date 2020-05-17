@@ -13,10 +13,10 @@ import org.antframework.sync.extension.redis.extension.RedisExecutor;
 import org.antframework.sync.extension.redis.extension.springdataredis.support.EvalRedisSerializer;
 import org.antframework.sync.extension.redis.extension.springdataredis.support.RedisListenerContainer;
 import org.springframework.data.redis.connection.MessageListener;
+import org.springframework.data.redis.connection.RedisConnectionFactory;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.core.script.DefaultRedisScript;
 import org.springframework.data.redis.listener.ChannelTopic;
-import org.springframework.data.redis.serializer.RedisSerializer;
 
 import java.util.List;
 import java.util.Map;
@@ -27,8 +27,6 @@ import java.util.concurrent.ConcurrentHashMap;
  * 基于spring-data-redis的redis执行器
  */
 public class SpringDataRedisExecutor implements RedisExecutor {
-    // redis序列化器
-    private static final RedisSerializer<Object> REDIS_SERIALIZER = new EvalRedisSerializer();
     // 监听器与redis消息监听器的映射关系
     private final Map<MessageListenerKey, MessageListener> listeners = new ConcurrentHashMap<>();
     // redisTemplate
@@ -36,19 +34,17 @@ public class SpringDataRedisExecutor implements RedisExecutor {
     // redis监听器容器
     private final RedisListenerContainer listenerContainer;
 
-    public SpringDataRedisExecutor(RedisTemplate<Object, Object> redisTemplate) {
-        this.redisTemplate = redisTemplate;
-        this.listenerContainer = new RedisListenerContainer(redisTemplate.getConnectionFactory());
+    public SpringDataRedisExecutor(RedisConnectionFactory redisConnectionFactory) {
+        this.redisTemplate = new RedisTemplate<>();
+        this.redisTemplate.setConnectionFactory(redisConnectionFactory);
+        this.redisTemplate.setDefaultSerializer(new EvalRedisSerializer());
+        this.redisTemplate.afterPropertiesSet();
+        this.listenerContainer = new RedisListenerContainer(redisConnectionFactory);
     }
 
     @Override
     public <T> T eval(String script, List<Object> keys, List<Object> args, Class<T> resultType) {
-        return redisTemplate.execute(
-                new DefaultRedisScript<>(script, resultType),
-                REDIS_SERIALIZER,
-                (RedisSerializer<T>) REDIS_SERIALIZER,
-                keys,
-                args.toArray());
+        return redisTemplate.execute(new DefaultRedisScript<>(script, resultType), keys, args.toArray());
     }
 
     @Override

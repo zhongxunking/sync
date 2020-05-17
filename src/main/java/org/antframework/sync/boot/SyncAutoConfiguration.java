@@ -22,7 +22,7 @@ import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.EnableAspectJAutoProxy;
-import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.data.redis.connection.RedisConnectionFactory;
 
 import java.util.function.Function;
 
@@ -103,8 +103,8 @@ public class SyncAutoConfiguration {
                 public static class RedisExecutorConfiguration {
                     // redis执行器（默认使用spring-data-redis）
                     @Bean(name = "org.antframework.sync.extension.redis.extension.RedisExecutor")
-                    public RedisExecutor redisExecutor(RedisTemplate<Object, Object> redisTemplate) {
-                        return new SpringDataRedisExecutor(redisTemplate);
+                    public RedisExecutor redisExecutor(RedisConnectionFactory redisConnectionFactory) {
+                        return new SpringDataRedisExecutor(redisConnectionFactory);
                     }
                 }
             }
