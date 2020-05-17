@@ -33,7 +33,7 @@ public class SyncUtils {
         try (BufferedReader reader = new BufferedReader(new InputStreamReader(input, Charset.forName("utf-8")))) {
             String line = reader.readLine();
             while (line != null) {
-                builder.append(line);
+                builder.append(line).append('\n');
                 line = reader.readLine();
             }
         } catch (IOException e) {
