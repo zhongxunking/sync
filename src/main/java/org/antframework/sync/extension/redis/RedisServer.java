@@ -39,6 +39,9 @@ public class RedisServer implements Server {
     private final RedisSemaphoreServer semaphoreServer;
 
     public RedisServer(RedisExecutor redisExecutor, long liveTime) {
+        if (redisExecutor == null || liveTime <= 0) {
+            throw new IllegalArgumentException("redisExecutor不能为null且liveTime必须大于0");
+        }
         Executor maintainExecutor = new ThreadPoolExecutor(
                 1,
                 10,

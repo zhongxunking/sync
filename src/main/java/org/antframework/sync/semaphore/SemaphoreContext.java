@@ -36,6 +36,9 @@ public class SemaphoreContext {
      * @return 信号量
      */
     public Semaphore getSemaphore(String key, int totalPermits) {
+        if (key == null || totalPermits < 0) {
+            throw new IllegalArgumentException("key不能为null且totalPermits不能小于0");
+        }
         return new DefaultServerSemaphore(key, SyncUtils.newId(), totalPermits, syncExecutor, semaphoreServer);
     }
 }

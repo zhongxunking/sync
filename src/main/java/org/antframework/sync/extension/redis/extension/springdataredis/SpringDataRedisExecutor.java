@@ -35,6 +35,9 @@ public class SpringDataRedisExecutor implements RedisExecutor {
     private final RedisListenerContainer listenerContainer;
 
     public SpringDataRedisExecutor(RedisConnectionFactory redisConnectionFactory) {
+        if (redisConnectionFactory == null) {
+            throw new IllegalArgumentException("redisConnectionFactory不能为null");
+        }
         this.redisTemplate = new RedisTemplate<>();
         this.redisTemplate.setConnectionFactory(redisConnectionFactory);
         this.redisTemplate.setDefaultSerializer(new EvalRedisSerializer());

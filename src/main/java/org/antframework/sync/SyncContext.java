@@ -25,6 +25,9 @@ public class SyncContext {
     private final SemaphoreContext semaphoreContext;
 
     public SyncContext(Server server, long maxWaitTime) {
+        if (server == null || maxWaitTime < 0) {
+            throw new IllegalArgumentException("server不能为null且maxWaitTime不能小于0");
+        }
         SyncExecutor syncExecutor = new SyncExecutor();
         this.lockContext = new LockContext(syncExecutor, server, maxWaitTime);
         this.semaphoreContext = new SemaphoreContext(syncExecutor, server, maxWaitTime);

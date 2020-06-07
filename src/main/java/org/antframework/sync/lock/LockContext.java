@@ -49,6 +49,9 @@ public class LockContext {
      * @return 可重入互斥锁
      */
     public Lock getLock(String key) {
+        if (key == null) {
+            throw new IllegalArgumentException("key不能为null");
+        }
         return mutexLocks.get().computeIfAbsent(key, k -> new ServerReentrantMutexLock(k, SyncUtils.newId(), syncExecutor, mutexLockServer));
     }
 
@@ -59,6 +62,9 @@ public class LockContext {
      * @return 可重入读写锁
      */
     public ReadWriteLock getRWLock(String key) {
+        if (key == null) {
+            throw new IllegalArgumentException("key不能为null");
+        }
         return rwLocks.get().computeIfAbsent(key, k -> new ServerReentrantRWLock(k, SyncUtils.newId(), syncExecutor, rwLockServer));
     }
 }
