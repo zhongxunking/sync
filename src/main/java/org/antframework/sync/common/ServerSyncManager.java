@@ -17,6 +17,7 @@ import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Semaphore;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
  * 基于服务端的同步管理者
@@ -40,15 +41,16 @@ public class ServerSyncManager {
      * @throws InterruptedException
      */
     public boolean waitSync(String key, String waiter, long timeout) throws InterruptedException {
+        AtomicBoolean newWaiter = new AtomicBoolean(false);
         SyncListener syncListener = syncListeners.compute(key, (k, v) -> {
             if (v == null) {
                 v = new SyncListener();
                 server.addSyncListener(syncType, k, v);
             }
-            v.addWaiter(waiter);
+            newWaiter.set(v.addWaiter(waiter));
             return v;
         });
-        return syncListener.waitSync(timeout);
+        return !newWaiter.get() && syncListener.waitSync(timeout);
     }
 
     /**
@@ -70,8 +72,8 @@ public class ServerSyncManager {
 
     // 同步监听器
     private static class SyncListener implements Runnable {
-        // 信号量（初始化为1的原因：防止在监听消息前，同步消息已经发出，导致无谓的等待）
-        private final Semaphore semaphore = new Semaphore(1);
+        // 信号量
+        private final Semaphore semaphore = new Semaphore(0, true);
         // 所有等待者
         private final Set<String> waiters = new HashSet<>();
 
@@ -89,9 +91,9 @@ public class ServerSyncManager {
             return semaphore.tryAcquire(timeout, TimeUnit.MILLISECONDS);
         }
 
-        // 添加等待者
-        void addWaiter(String waiter) {
-            waiters.add(waiter);
+        // 添加等待者（返回true表示新的等待者；否则返回false）
+        boolean addWaiter(String waiter) {
+            return waiters.add(waiter);
         }
 
         // 删除等待者
