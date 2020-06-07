@@ -54,10 +54,12 @@ public abstract class AbstractServerSemaphore extends AbstractSemaphore {
         if (newPermits > totalPermits) {
             throw new IllegalArgumentException(String.format("获取的信号量许可[%s]不能超过许可总数[%s]", newPermits, totalPermits));
         }
-        log.debug("调用server获取许可：semaphore={},newPermits={}", this, newPermits);
+        log.debug("调用server尝试获取许可：semaphore={},newPermits={}", this, newPermits);
         SyncWaiter waiter = acquireInServer(newPermits, deadline);
-        if (waiter != null) {
-            log.debug("调用server获取许可失败，需等待：waiter={}", waiter);
+        if (waiter == null) {
+            log.debug("调用server获取许可成功：semaphore={},newPermits={}", this, newPermits);
+        } else {
+            log.debug("调用server获取许可失败，需等待：semaphore={},waiter={}", this, waiter);
         }
         return waiter;
     }
@@ -73,8 +75,9 @@ public abstract class AbstractServerSemaphore extends AbstractSemaphore {
 
     @Override
     protected void doRelease(int newPermits) {
+        log.debug("调用server尝试释放许可：semaphore={}", this);
         releaseInServer(newPermits);
-        log.debug("调用server释放许可：semaphore={}", this);
+        log.debug("调用server释放许可成功：semaphore={}", this);
     }
 
     /**

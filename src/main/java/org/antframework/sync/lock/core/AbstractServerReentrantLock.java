@@ -49,10 +49,12 @@ public abstract class AbstractServerReentrantLock extends AbstractReentrantLock 
 
     @Override
     protected SyncWaiter doAcquireLock(long deadline) {
-        log.debug("调用server加锁：lock={}", this);
+        log.debug("调用server尝试加锁：lock={}", this);
         SyncWaiter waiter = lockInServer(deadline);
-        if (waiter != null) {
-            log.debug("调用server加锁失败，需等待：waiter={}", waiter);
+        if (waiter == null) {
+            log.debug("调用server加锁成功：lock={}", this);
+        } else {
+            log.debug("调用server加锁失败，需等待：lock={},waiter={}", this, waiter);
         }
         return waiter;
     }
@@ -67,8 +69,9 @@ public abstract class AbstractServerReentrantLock extends AbstractReentrantLock 
 
     @Override
     protected void doReleaseLock() {
+        log.debug("调用server尝试解锁：lock={}", this);
         unlockInServer();
-        log.debug("调用server解锁：lock={}", this);
+        log.debug("调用server解锁成功：lock={}", this);
     }
 
     /**
