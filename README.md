@@ -15,7 +15,7 @@
 <img src="https://note.youdao.com/yws/api/personal/file/WEBbca9e0a9a6e1ea2d9ab9def1cc90f839?method=download&shareKey=00e90849ae0d3b5cb8ed7dd12bc6842e" width=150 />
 
 
-## 1.将sync引入进你的系统
+## 1. 将sync引入进你的系统
 引入sync很简单，按照以下操作即可。
 
 ### 1.1 引入依赖
@@ -67,7 +67,7 @@ SyncContext syncContext = new SyncContext(new RedisServer(new SpringDataRedisExe
 ```
 如果想使用注解@Lock、@ReadLock、@WriteLock、@Semaphore，则还需要配置org.antframework.sync.lock.annotation.support.LockAop和org.antframework.sync.semaphore.annotation.support.SemaphoreAop，具体配置方式请参考org.antframework.sync.boot.SyncAutoConfiguration。
 
-## 2.使用sync
+## 2. 使用sync
 提供两种使用sync方式：
 - 通过SyncContext使用
 - 通过注解使用
