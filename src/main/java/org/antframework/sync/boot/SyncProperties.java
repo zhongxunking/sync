@@ -39,10 +39,10 @@ public class SyncProperties {
     @Valid
     private Semaphore semaphore = new Semaphore();
     /**
-     * 选填：等待同步消息的最长时间（毫秒，默认为30秒）
+     * 选填：等待同步消息的最长时间（毫秒，默认为10秒）
      */
     @Min(0)
-    private long maxWaitTime = 30 * 1000;
+    private long maxWaitTime = 10 * 1000;
     /**
      * 选填：服务端类型（默认为redis）
      */
