@@ -47,7 +47,7 @@ sync提供对spring-boot和非spring-boot项目两种配置方式。
 spring.redis.host=127.0.0.1
 spring.redis.port=6379
 
-# 选填：服务端类型（默认为redis）（sync提供local模式，可以不依赖redis，这种模式只对单个应用实例其效果，无法用在分布式场景）
+# 选填：服务端类型（默认为redis）（sync还提供local模式，可以不依赖redis，这种模式只对单个应用实例起效果，无法用在分布式场景）
 ant.sync.server-type=redis
 # 选填：发生异常时redis中数据的存活时长（毫秒，默认为10分钟）
 ant.sync.redis.live-time=600000
@@ -78,7 +78,7 @@ SyncContext syncContext = new SyncContext(new RedisServer(new SpringDataRedisExe
 @Autowired
 private SyncContext syncContext;
 ```
-- 非spring-boot项目直接获取自己初始化的SyncContext
+- 非spring-boot项目直接使用自己初始化的SyncContext
 
 #### 2.1.1 分布式可重入互斥锁
 ```java
