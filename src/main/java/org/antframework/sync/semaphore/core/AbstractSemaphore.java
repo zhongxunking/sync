@@ -113,8 +113,10 @@ public abstract class AbstractSemaphore implements Semaphore {
 
     // 释放许可
     private synchronized void releasePermits(int permits) {
-        acquiredPermits = Math.max(acquiredPermits - permits, 0);
-        doRelease(acquiredPermits);
+        if (acquiredPermits > 0) {
+            acquiredPermits = Math.max(acquiredPermits - permits, 0);
+            doRelease(acquiredPermits);
+        }
     }
 
     /**
