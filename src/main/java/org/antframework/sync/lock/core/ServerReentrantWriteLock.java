@@ -26,7 +26,7 @@ public class ServerReentrantWriteLock extends AbstractServerReentrantLock {
 
     @Override
     protected void onTryLockEnd() {
-        server.removeWaiter(getKey(), getLockerId());
+        server.removeWriterWaiter(getKey(), getLockerId());
     }
 
     @Override

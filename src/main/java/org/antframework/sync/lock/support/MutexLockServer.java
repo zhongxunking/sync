@@ -18,6 +18,9 @@ import org.antframework.sync.extension.Server;
  * 互斥锁服务端
  */
 public class MutexLockServer {
+    // 等待者类型
+    private static final String WAITER_TYPE = "mutex";
+
     // 互斥资源
     private final MutexResource mutexResource = new MutexResource();
     // 服务端
@@ -56,7 +59,7 @@ public class MutexLockServer {
         SyncWaiter waiter = null;
         if (waitTime != null) {
             waitTime = Math.min(waitTime, maxWaitTime);
-            waiter = new ServerSyncWaiter(syncManager, key, lockerId, waitTime);
+            waiter = new ServerSyncWaiter(syncManager, key, WAITER_TYPE, lockerId, waitTime);
         }
         return waiter;
     }
@@ -79,6 +82,6 @@ public class MutexLockServer {
      * @param lockerId 加锁者id
      */
     public void removeWaiter(String key, String lockerId) {
-        syncManager.removeWaiter(key, lockerId);
+        syncManager.removeWaiter(key, WAITER_TYPE, lockerId);
     }
 }

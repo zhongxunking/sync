@@ -22,6 +22,11 @@ import java.util.Objects;
  */
 @AllArgsConstructor
 public class RWLockServer {
+    // 读等待者类型
+    private static final String READER_WAITER_TYPE = "reader";
+    // 写等待者类型
+    private static final String WRITER_WAITER_TYPE = "writer";
+
     // 互斥资源
     private final MutexResource mutexResource = new MutexResource();
     // 服务端
@@ -55,7 +60,7 @@ public class RWLockServer {
         SyncWaiter waiter = null;
         if (waitTime != null) {
             waitTime = Math.min(waitTime, maxWaitTime);
-            waiter = new ServerSyncWaiter(syncManager, key, lockerId, waitTime);
+            waiter = new ServerSyncWaiter(syncManager, key, READER_WAITER_TYPE, lockerId, waitTime);
         }
         return waiter;
     }
@@ -93,7 +98,7 @@ public class RWLockServer {
         SyncWaiter waiter = null;
         if (waitTime != null) {
             waitTime = Math.min(waitTime, maxWaitTime);
-            waiter = new ServerSyncWaiter(syncManager, key, lockerId, waitTime);
+            waiter = new ServerSyncWaiter(syncManager, key, WRITER_WAITER_TYPE, lockerId, waitTime);
         }
         return waiter;
     }
@@ -110,12 +115,22 @@ public class RWLockServer {
     }
 
     /**
-     * 删除等待者
+     * 删除读等待者
      *
      * @param key      锁标识
      * @param lockerId 加锁者id
      */
-    public void removeWaiter(String key, String lockerId) {
-        syncManager.removeWaiter(key, lockerId);
+    public void removeReaderWaiter(String key, String lockerId) {
+        syncManager.removeWaiter(key, READER_WAITER_TYPE, lockerId);
+    }
+
+    /**
+     * 删除写等待者
+     *
+     * @param key      锁标识
+     * @param lockerId 加锁者id
+     */
+    public void removeWriterWaiter(String key, String lockerId) {
+        syncManager.removeWaiter(key, WRITER_WAITER_TYPE, lockerId);
     }
 }

@@ -18,6 +18,9 @@ import org.antframework.sync.extension.Server;
  * 信号量服务端
  */
 public class SemaphoreServer {
+    // 等待者类型
+    private static final String WAITER_TYPE = "semaphore";
+
     // 有限资源
     private final FiniteResource finiteResource = new FiniteResource();
     // 服务端
@@ -59,7 +62,7 @@ public class SemaphoreServer {
         SyncWaiter waiter = null;
         if (waitTime != null) {
             waitTime = Math.min(waitTime, maxWaitTime);
-            waiter = new ServerSyncWaiter(syncManager, key, semaphorerId, waitTime);
+            waiter = new ServerSyncWaiter(syncManager, key, WAITER_TYPE, semaphorerId, waitTime);
         }
         return waiter;
     }
@@ -84,6 +87,6 @@ public class SemaphoreServer {
      * @param semaphorerId 获取信号量许可者id
      */
     public void removeWaiter(String key, String semaphorerId) {
-        syncManager.removeWaiter(key, semaphorerId);
+        syncManager.removeWaiter(key, WAITER_TYPE, semaphorerId);
     }
 }

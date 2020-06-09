@@ -19,6 +19,8 @@ public class ServerSyncWaiter implements SyncWaiter {
     private final ServerSyncManager syncManager;
     // 目标标识
     private final String key;
+    // 类型
+    private final String type;
     // 等待者
     private final String waiter;
     // 最大等待时长（毫秒）
@@ -27,11 +29,11 @@ public class ServerSyncWaiter implements SyncWaiter {
     @Override
     public boolean waitSync(long timeout) throws InterruptedException {
         long time = Math.min(timeout, maxWaitTime);
-        return syncManager.waitSync(key, waiter, time);
+        return syncManager.waitSync(key, type, waiter, time);
     }
 
     @Override
     public String toString() {
-        return String.format("ServerSyncWaiter{key=%s,waiter=%s,maxWaitTime=%d}", key, waiter, maxWaitTime);
+        return String.format("ServerSyncWaiter{key=%s,type=%s,waiter=%s,maxWaitTime=%d}", key, type, waiter, maxWaitTime);
     }
 }

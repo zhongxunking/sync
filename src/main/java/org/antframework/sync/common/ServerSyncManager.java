@@ -17,7 +17,6 @@ import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Semaphore;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
  * 基于服务端的同步管理者
@@ -35,34 +34,35 @@ public class ServerSyncManager {
      * 等待同步
      *
      * @param key     目标标识
+     * @param type    类型
      * @param waiter  等待者
      * @param timeout 超时时间（毫秒）
      * @return true 等到通知; false 等待超时
      * @throws InterruptedException
      */
-    public boolean waitSync(String key, String waiter, long timeout) throws InterruptedException {
-        AtomicBoolean newWaiter = new AtomicBoolean(false);
+    public boolean waitSync(String key, String type, String waiter, long timeout) throws InterruptedException {
         SyncListener syncListener = syncListeners.compute(key, (k, v) -> {
             if (v == null) {
                 v = new SyncListener();
                 server.addSyncListener(syncType, k, v);
             }
-            newWaiter.set(v.addWaiter(waiter));
+            v.addWaiter(type, waiter);
             return v;
         });
-        return !newWaiter.get() && syncListener.waitSync(timeout);
+        return syncListener.waitSync(type, timeout);
     }
 
     /**
      * 删除等待者
      *
      * @param key    目标标识
+     * @param type   类型
      * @param waiter 等待者
      */
-    public void removeWaiter(String key, String waiter) {
+    public void removeWaiter(String key, String type, String waiter) {
         syncListeners.computeIfPresent(key, (k, v) -> {
-            v.removeWaiter(waiter);
-            if (v.getWaiterAmount() <= 0) {
+            v.removeWaiter(type, waiter);
+            if (v.isEmpty()) {
                 server.removeSyncListener(syncType, k, v);
                 v = null;
             }
@@ -72,38 +72,82 @@ public class ServerSyncManager {
 
     // 同步监听器
     private static class SyncListener implements Runnable {
-        // 信号量
-        private final Semaphore semaphore = new Semaphore(0, true);
-        // 所有等待者
-        private final Set<String> waiters = new HashSet<>();
+        // 所有等待点
+        private final Map<String, WaitPoint> waitPoints = new ConcurrentHashMap<>();
 
         @Override
         public synchronized void run() {
             // 唤醒所有等待者
-            int permits = getWaiterAmount() - semaphore.availablePermits();
-            if (permits > 0) {
-                semaphore.release(permits);
-            }
+            waitPoints.forEach((k, v) -> v.awakeWaiters());
         }
 
         // 等待同步
-        boolean waitSync(long timeout) throws InterruptedException {
-            return semaphore.tryAcquire(timeout, TimeUnit.MILLISECONDS);
+        boolean waitSync(String type, long timeout) throws InterruptedException {
+            return waitPoints.get(type).waitSync(timeout);
         }
 
-        // 添加等待者（返回true表示新的等待者；否则返回false）
-        boolean addWaiter(String waiter) {
-            return waiters.add(waiter);
+        // 添加等待者
+        void addWaiter(String type, String waiter) {
+            waitPoints.compute(type, (k, v) -> {
+                if (v == null) {
+                    v = new WaitPoint();
+                }
+                v.addWaiter(waiter);
+                return v;
+            });
         }
 
         // 删除等待者
-        void removeWaiter(String waiter) {
-            waiters.remove(waiter);
+        void removeWaiter(String type, String waiter) {
+            waitPoints.computeIfPresent(type, (k, v) -> {
+                v.removeWaiter(waiter);
+                if (v.isEmpty()) {
+                    v = null;
+                }
+                return v;
+            });
         }
 
-        // 获取等待者数量
-        int getWaiterAmount() {
-            return waiters.size();
+        // 是否为空
+        boolean isEmpty() {
+            return waitPoints.isEmpty();
+        }
+
+        // 等待点
+        private static class WaitPoint {
+            // 信号量
+            private final Semaphore semaphore = new Semaphore(0);
+            // 所有等待者
+            private final Set<String> waiters = new HashSet<>();
+
+            // 唤醒所有等待者
+            void awakeWaiters() {
+                // 唤醒所有等待者
+                int permits = waiters.size() - semaphore.availablePermits();
+                if (permits > 0) {
+                    semaphore.release(permits);
+                }
+            }
+
+            // 等待同步
+            boolean waitSync(long timeout) throws InterruptedException {
+                return semaphore.tryAcquire(timeout, TimeUnit.MILLISECONDS);
+            }
+
+            // 添加等待者
+            void addWaiter(String waiter) {
+                waiters.add(waiter);
+            }
+
+            // 删除等待者
+            void removeWaiter(String waiter) {
+                waiters.remove(waiter);
+            }
+
+            // 是否为空
+            boolean isEmpty() {
+                return waiters.isEmpty();
+            }
         }
     }
 }
