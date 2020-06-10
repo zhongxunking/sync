@@ -115,8 +115,8 @@ public class ServerSyncManager {
 
         // 等待点
         private static class WaitPoint {
-            // 信号量
-            private final Semaphore semaphore = new Semaphore(0);
+            // 信号量（初始化为1的原因：缓解因监听消息前同步消息已经发出所导致的无意义的等待）
+            private final Semaphore semaphore = new Semaphore(1);
             // 所有等待者
             private final Set<String> waiters = new HashSet<>();
 
