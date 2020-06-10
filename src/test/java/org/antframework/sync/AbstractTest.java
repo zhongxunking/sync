@@ -26,7 +26,7 @@ public abstract class AbstractTest {
     /**
      * Sync上下文
      */
-    protected final SyncContext syncContext = new SyncContext(new LocalServer(), 30 * 1000);
+    protected final SyncContext syncContext = new SyncContext(new LocalServer(), 10 * 1000);
     /**
      * 线程池
      */
