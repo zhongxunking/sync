@@ -79,7 +79,7 @@ public class MutexLockTest extends AbstractTest {
                     lock.lock();
                     try {
                         int temp = amount;
-                        Thread.sleep(1);
+//                        Thread.sleep(1);
                         amount = temp + 1;
                     } finally {
                         lock.unlock();

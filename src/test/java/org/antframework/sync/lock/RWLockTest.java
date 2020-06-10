@@ -104,7 +104,7 @@ public class RWLockTest extends AbstractTest {
                     rwLock.readLock().lock();
                     try {
                         int leftTemp = left;
-                        Thread.sleep(1);
+//                        Thread.sleep(1);
                         int rightTemp = right;
                         if (leftTemp != rightTemp) {
                             throw new IllegalStateException("读到脏数据：left=" + leftTemp + ",right=" + rightTemp);
@@ -146,7 +146,7 @@ public class RWLockTest extends AbstractTest {
                     rwLock.writeLock().lock();
                     try {
                         left++;
-                        Thread.sleep(1);
+//                        Thread.sleep(1);
                         right++;
                     } finally {
                         rwLock.writeLock().unlock();

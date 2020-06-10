@@ -86,7 +86,7 @@ public class SemaphoreTest extends AbstractTest {
                         if (temp > totalPermits) {
                             throw new IllegalStateException("获取到的许可数（" + temp + "）超过总许可数（" + totalPermits + "）");
                         }
-                        Thread.sleep(1);
+//                        Thread.sleep(1);
                         amount.addAndGet(-1);
                     } finally {
                         semaphore.release();
