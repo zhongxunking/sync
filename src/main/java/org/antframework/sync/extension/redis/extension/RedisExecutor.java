@@ -1,4 +1,4 @@
-/* 
+/*
  * 作者：钟勋 (email:zhongxunking@163.com)
  */
 
@@ -24,7 +24,7 @@ public interface RedisExecutor {
      * @param <T>        返回值类型
      * @return 脚本返回值
      */
-    <T> T eval(String script, List<Object> keys, List<Object> args, Class<T> resultType);
+    <T> T eval(String script, List<String> keys, List<Object> args, Class<T> resultType);
 
     /**
      * 新增消息监听器
