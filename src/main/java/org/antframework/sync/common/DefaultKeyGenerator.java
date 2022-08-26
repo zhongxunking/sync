@@ -19,6 +19,10 @@ import java.util.function.BiFunction;
 @AllArgsConstructor
 public class DefaultKeyGenerator implements BiFunction<Server.SyncType, String, String> {
     /**
+     * Sync
+     */
+    public static final String SYNC = "sync";
+    /**
      * 分隔符
      */
     public static final String SEPARATOR = "::";
@@ -28,7 +32,7 @@ public class DefaultKeyGenerator implements BiFunction<Server.SyncType, String, 
 
     @Override
     public String apply(Server.SyncType syncType, String key) {
-        return namespace + SEPARATOR + convertSyncType(syncType) + SEPARATOR + key;
+        return namespace + SEPARATOR + SYNC + SEPARATOR + convertSyncType(syncType) + SEPARATOR + key;
     }
 
     // 转换同步类型
