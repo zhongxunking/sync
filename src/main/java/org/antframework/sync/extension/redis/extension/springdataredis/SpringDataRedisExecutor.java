@@ -10,6 +10,7 @@ package org.antframework.sync.extension.redis.extension.springdataredis;
 
 import lombok.AllArgsConstructor;
 import org.antframework.sync.extension.redis.extension.RedisExecutor;
+import org.antframework.sync.extension.redis.extension.springdataredis.support.EvalArgsRedisSerializer;
 import org.antframework.sync.extension.redis.extension.springdataredis.support.RedisListenerContainer;
 import org.springframework.data.redis.connection.MessageListener;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
@@ -52,7 +53,7 @@ public class SpringDataRedisExecutor implements RedisExecutor {
     public <T> T eval(String script, List<String> keys, List<Object> args, Class<T> resultType) {
         return (T) redisTemplate.execute(
                 new DefaultRedisScript<>(script, resultType),
-                RedisSerializer.string(),
+                EvalArgsRedisSerializer.INSTANCE,
                 (RedisSerializer) RedisSerializer.byteArray(),
                 keys,
                 args.toArray());
