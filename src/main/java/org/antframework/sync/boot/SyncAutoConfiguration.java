@@ -1,4 +1,4 @@
-/* 
+/*
  * 作者：钟勋 (email:zhongxunking@163.com)
  */
 
@@ -9,6 +9,7 @@
 package org.antframework.sync.boot;
 
 import org.antframework.sync.SyncContext;
+import org.antframework.sync.common.DefaultKeyGenerator;
 import org.antframework.sync.extension.Server;
 import org.antframework.sync.extension.local.LocalServer;
 import org.antframework.sync.extension.redis.RedisServer;
@@ -16,12 +17,14 @@ import org.antframework.sync.extension.redis.extension.RedisExecutor;
 import org.antframework.sync.extension.redis.extension.springdataredis.SpringDataRedisExecutor;
 import org.antframework.sync.lock.annotation.support.LockAop;
 import org.antframework.sync.semaphore.annotation.support.SemaphoreAop;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.EnableAspectJAutoProxy;
+import org.springframework.core.env.Environment;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
 
 import java.util.function.Function;
@@ -30,6 +33,7 @@ import java.util.function.Function;
  * Sync自动配置
  */
 @Configuration
+@ConditionalOnProperty(name = SyncProperties.ENABLE_KEY, havingValue = "true", matchIfMissing = true)
 @EnableAspectJAutoProxy
 @EnableConfigurationProperties(SyncProperties.class)
 public class SyncAutoConfiguration {
@@ -91,8 +95,23 @@ public class SyncAutoConfiguration {
             public static class RedisServerConfiguration {
                 // server
                 @Bean(name = "org.antframework.sync.extension.Server")
-                public Server server(RedisExecutor redisExecutor, SyncProperties properties) {
-                    return new RedisServer(redisExecutor, properties.getRedis().getLiveTime());
+                public Server server(RedisExecutor redisExecutor, SyncProperties properties, Environment environment) {
+                    return new RedisServer(
+                            new DefaultKeyGenerator(computeNamespace(properties, environment)),
+                            redisExecutor,
+                            properties.getRedis().getLiveTime());
+                }
+
+                // 计算命名空间
+                private String computeNamespace(SyncProperties properties, Environment environment) {
+                    String namespace = properties.getNamespace();
+                    if (StringUtils.isBlank(namespace)) {
+                        namespace = environment.getProperty("spring.application.name");
+                        if (StringUtils.isBlank(namespace)) {
+                            throw new IllegalArgumentException("未配置Sync命名空间，可通过ant.sync.namespace或者spring.application.name配置");
+                        }
+                    }
+                    return namespace;
                 }
 
                 /**

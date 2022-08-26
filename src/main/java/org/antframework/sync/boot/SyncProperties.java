@@ -1,4 +1,4 @@
-/* 
+/*
  * 作者：钟勋 (email:zhongxunking@163.com)
  */
 
@@ -29,15 +29,18 @@ import java.util.Map;
 @Setter
 public class SyncProperties {
     /**
-     * 选填：@Lock、@ReadLock、@WriteLock、@Semaphore切面执行的优先级（默认比@Transactional先执行）
+     * 是否启用Sync的key
      */
-    private int aopOrder = Ordered.LOWEST_PRECEDENCE - 10;
+    public static final String ENABLE_KEY = "ant.sync.enable";
+
     /**
-     * 信号量配置
+     * 选填：是否启用Sync（默认启用）
      */
-    @NotNull
-    @Valid
-    private Semaphore semaphore = new Semaphore();
+    private boolean enable = true;
+    /**
+     * 选填：命名空间（默认为spring.application.name对应的值）
+     */
+    private String namespace = null;
     /**
      * 选填：等待同步消息的最长时间（毫秒，默认为10秒）
      */
@@ -54,19 +57,16 @@ public class SyncProperties {
     @NotNull
     @Valid
     private Redis redis = new Redis();
-
     /**
      * 信号量配置
      */
-    @Getter
-    @Setter
-    public static class Semaphore {
-        /**
-         * key对应的总许可数
-         */
-        @NotNull
-        private Map<String, Integer> keyTotalPermits = new HashMap<>();
-    }
+    @NotNull
+    @Valid
+    private Semaphore semaphore = new Semaphore();
+    /**
+     * 选填：@Lock、@ReadLock、@WriteLock、@Semaphore切面执行的优先级（默认比@Transactional先执行）
+     */
+    private int aopOrder = Ordered.LOWEST_PRECEDENCE - 10;
 
     /**
      * 服务端类型
@@ -93,5 +93,18 @@ public class SyncProperties {
          */
         @Min(1)
         private long liveTime = 10 * 60 * 1000;
+    }
+
+    /**
+     * 信号量配置
+     */
+    @Getter
+    @Setter
+    public static class Semaphore {
+        /**
+         * key对应的总许可数
+         */
+        @NotNull
+        private Map<String, Integer> keyTotalPermits = new HashMap<>();
     }
 }
