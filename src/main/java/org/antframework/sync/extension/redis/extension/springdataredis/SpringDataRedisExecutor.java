@@ -9,6 +9,7 @@
 package org.antframework.sync.extension.redis.extension.springdataredis;
 
 import lombok.AllArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.antframework.sync.extension.redis.extension.RedisExecutor;
 import org.antframework.sync.extension.redis.extension.springdataredis.support.EvalArgsRedisSerializer;
 import org.antframework.sync.extension.redis.extension.springdataredis.support.RedisListenerContainer;
@@ -27,6 +28,7 @@ import java.util.concurrent.ConcurrentHashMap;
 /**
  * 基于spring-data-redis的redis执行器
  */
+@Slf4j
 public class SpringDataRedisExecutor implements RedisExecutor {
     // 监听器与redis消息监听器的映射关系
     private final Map<MessageListenerKey, MessageListener> listeners = new ConcurrentHashMap<>();
@@ -68,7 +70,13 @@ public class SpringDataRedisExecutor implements RedisExecutor {
     public void addMessageListener(String channel, Runnable listener) {
         MessageListenerKey key = new MessageListenerKey(channel, listener);
         listeners.computeIfAbsent(key, k -> {
-            MessageListener messageListener = (message, pattern) -> listener.run();
+            MessageListener messageListener = (message, pattern) -> {
+                try {
+                    listener.run();
+                } catch (Throwable e) {
+                    log.error("处理Redis消息失败", e);
+                }
+            };
             listenerContainer.addMessageListener(messageListener, new ChannelTopic(channel));
             return messageListener;
         });
