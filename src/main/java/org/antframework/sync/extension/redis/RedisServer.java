@@ -1,4 +1,4 @@
-/* 
+/*
  * 作者：钟勋 (email:zhongxunking@163.com)
  */
 
@@ -21,6 +21,7 @@ import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.Executor;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
+import java.util.function.BiFunction;
 
 /**
  * redis服务端
@@ -38,7 +39,7 @@ public class RedisServer implements Server {
     // 信号量服务端
     private final RedisSemaphoreServer semaphoreServer;
 
-    public RedisServer(RedisExecutor redisExecutor, long liveTime) {
+    public RedisServer(BiFunction<SyncType, String, String> keyGenerator, RedisExecutor redisExecutor, long liveTime) {
         if (redisExecutor == null || liveTime <= 0) {
             throw new IllegalArgumentException("redisExecutor不能为null且liveTime必须大于0");
         }
@@ -50,9 +51,9 @@ public class RedisServer implements Server {
                 new ArrayBlockingQueue<>(1024),
                 new ThreadPoolExecutor.CallerRunsPolicy());
         this.redisExecutor = redisExecutor;
-        this.mutexLockServer = new RedisMutexLockServer(redisExecutor, liveTime, maintainExecutor);
-        this.rwLockServer = new RedisRWLockServer(redisExecutor, liveTime, maintainExecutor);
-        this.semaphoreServer = new RedisSemaphoreServer(redisExecutor, liveTime, maintainExecutor);
+        this.mutexLockServer = new RedisMutexLockServer(keyGenerator, redisExecutor, liveTime, maintainExecutor);
+        this.rwLockServer = new RedisRWLockServer(keyGenerator, redisExecutor, liveTime, maintainExecutor);
+        this.semaphoreServer = new RedisSemaphoreServer(keyGenerator, redisExecutor, liveTime, maintainExecutor);
         this.timer.schedule(new MaintainTask(), liveTime / 10, liveTime / 10);
     }
 

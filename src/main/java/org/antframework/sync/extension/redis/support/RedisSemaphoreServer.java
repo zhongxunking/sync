@@ -10,12 +10,14 @@ package org.antframework.sync.extension.redis.support;
 
 import lombok.extern.slf4j.Slf4j;
 import org.antframework.sync.common.SyncUtils;
+import org.antframework.sync.extension.Server;
 import org.antframework.sync.extension.redis.extension.RedisExecutor;
 
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Set;
 import java.util.concurrent.Executor;
+import java.util.function.BiFunction;
 
 /**
  * 基于redis的信号量服务端
@@ -26,11 +28,11 @@ public class RedisSemaphoreServer {
     private static final String UPDATE_PERMITS_SCRIPT_SOURCE = SyncUtils.getScript("META-INF/server/redis/semaphore/Semaphore-updatePermits.lua");
     // 源维护脚本
     private static final String MAINTAIN_SCRIPT_SOURCE = SyncUtils.getScript("META-INF/server/redis/semaphore/Semaphore-maintain.lua");
-    // redis中key的前缀
-    private static final String REDIS_KEY_PREFIX = "sync:semaphore:";
 
     // 维护器
     private final SyncMaintainer maintainer = new SyncMaintainer();
+    // key生成器
+    private final BiFunction<Server.SyncType, String, String> keyGenerator;
     // redis执行器
     private final RedisExecutor redisExecutor;
     // 存活时间（毫秒）
@@ -43,7 +45,11 @@ public class RedisSemaphoreServer {
     // 维护脚本
     private final Object maintainScript;
 
-    public RedisSemaphoreServer(RedisExecutor redisExecutor, long liveTime, Executor maintainExecutor) {
+    public RedisSemaphoreServer(BiFunction<Server.SyncType, String, String> keyGenerator,
+                                RedisExecutor redisExecutor,
+                                long liveTime,
+                                Executor maintainExecutor) {
+        this.keyGenerator = keyGenerator;
         this.redisExecutor = redisExecutor;
         this.liveTime = liveTime;
         this.maintainExecutor = maintainExecutor;
@@ -156,6 +162,6 @@ public class RedisSemaphoreServer {
 
     // 计算在redis中key
     private String computeRedisKey(String key) {
-        return REDIS_KEY_PREFIX + key;
+        return keyGenerator.apply(Server.SyncType.SEMAPHORE, key);
     }
 }
