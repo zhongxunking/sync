@@ -1,4 +1,4 @@
-/* 
+/*
  * 作者：钟勋 (email:zhongxunking@163.com)
  */
 
@@ -8,7 +8,6 @@
  */
 package org.antframework.sync.extension.redis.support;
 
-import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.antframework.sync.common.SyncUtils;
 import org.antframework.sync.extension.redis.extension.RedisExecutor;
@@ -21,15 +20,14 @@ import java.util.concurrent.Executor;
 /**
  * 基于redis的互斥锁服务端
  */
-@AllArgsConstructor
 @Slf4j
 public class RedisMutexLockServer {
-    // 加锁脚本
-    private static final String LOCK_SCRIPT = SyncUtils.getScript("META-INF/server/redis/mutex-lock/MutexLock-lock.lua");
-    // 解锁脚本
-    private static final String UNLOCK_SCRIPT = SyncUtils.getScript("META-INF/server/redis/mutex-lock/MutexLock-unlock.lua");
-    // 维护脚本
-    private static final String MAINTAIN_SCRIPT = SyncUtils.getScript("META-INF/server/redis/mutex-lock/MutexLock-maintain.lua");
+    // 源加锁脚本
+    private static final String LOCK_SCRIPT_SOURCE = SyncUtils.getScript("META-INF/server/redis/mutex-lock/MutexLock-lock.lua");
+    // 源解锁脚本
+    private static final String UNLOCK_SCRIPT_SOURCE = SyncUtils.getScript("META-INF/server/redis/mutex-lock/MutexLock-unlock.lua");
+    // 源维护脚本
+    private static final String MAINTAIN_SCRIPT_SOURCE = SyncUtils.getScript("META-INF/server/redis/mutex-lock/MutexLock-maintain.lua");
     // redis中key的前缀
     private static final String REDIS_KEY_PREFIX = "sync:mutex-lock:";
 
@@ -42,6 +40,22 @@ public class RedisMutexLockServer {
     // 维护执行器
     private final Executor maintainExecutor;
 
+    // 加锁脚本
+    private final Object lockScript;
+    // 解锁脚本
+    private final Object unlockScript;
+    // 维护脚本
+    private final Object maintainScript;
+
+    public RedisMutexLockServer(RedisExecutor redisExecutor, long liveTime, Executor maintainExecutor) {
+        this.redisExecutor = redisExecutor;
+        this.liveTime = liveTime;
+        this.maintainExecutor = maintainExecutor;
+        lockScript = redisExecutor.encodeScript(LOCK_SCRIPT_SOURCE, Long.class);
+        unlockScript = redisExecutor.encodeScript(UNLOCK_SCRIPT_SOURCE, Boolean.class);
+        maintainScript = redisExecutor.encodeScript(MAINTAIN_SCRIPT_SOURCE, Boolean.class);
+    }
+
     /**
      * 加锁
      *
@@ -52,10 +66,9 @@ public class RedisMutexLockServer {
     public Long lock(String key, String lockerId) {
         String redisKey = computeRedisKey(key);
         Long waitTime = redisExecutor.eval(
-                LOCK_SCRIPT,
+                lockScript,
                 Collections.singletonList(redisKey),
-                Arrays.asList(lockerId, liveTime),
-                Long.class);
+                Arrays.asList(lockerId, liveTime));
         if (waitTime == null) {
             maintainer.add(key, lockerId);
         }
@@ -74,10 +87,9 @@ public class RedisMutexLockServer {
         String syncChannel = computeSyncChannel(key);
         try {
             boolean success = redisExecutor.eval(
-                    UNLOCK_SCRIPT,
+                    unlockScript,
                     Collections.singletonList(redisKey),
-                    Arrays.asList(lockerId, syncChannel),
-                    Boolean.class);
+                    Arrays.asList(lockerId, syncChannel));
             if (!success) {
                 log.error("调用redis解互斥锁失败（锁不存在或已经易主），可能已经发生并发问题：key={},lockerId={}", key, lockerId);
             }
@@ -97,10 +109,9 @@ public class RedisMutexLockServer {
                 boolean alive = true;
                 try {
                     alive = redisExecutor.eval(
-                            MAINTAIN_SCRIPT,
+                            maintainScript,
                             Collections.singletonList(redisKey),
-                            Arrays.asList(lockerId, liveTime),
-                            Boolean.class);
+                            Arrays.asList(lockerId, liveTime));
                     if (alive) {
                         log.debug("调用redis维护互斥锁成功：key={},lockerId={}", k, lockerId);
                     } else {
