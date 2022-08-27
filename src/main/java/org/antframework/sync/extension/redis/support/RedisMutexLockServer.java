@@ -57,6 +57,7 @@ public class RedisMutexLockServer {
         this.redisExecutor = redisExecutor;
         this.liveTime = liveTime;
         this.maintainExecutor = maintainExecutor;
+
         lockScript = redisExecutor.encodeScript(LOCK_SCRIPT_SOURCE, Long.class);
         unlockScript = redisExecutor.encodeScript(UNLOCK_SCRIPT_SOURCE, Boolean.class);
         maintainScript = redisExecutor.encodeScript(MAINTAIN_SCRIPT_SOURCE, Boolean.class);

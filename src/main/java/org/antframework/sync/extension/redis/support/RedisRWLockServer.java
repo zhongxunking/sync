@@ -73,6 +73,7 @@ public class RedisRWLockServer {
         this.redisExecutor = redisExecutor;
         this.liveTime = liveTime;
         this.maintainExecutor = maintainExecutor;
+
         lockForReadScript = redisExecutor.encodeScript(LOCK_FOR_READ_SCRIPT_SOURCE, Long.class);
         unlockForReadScript = redisExecutor.encodeScript(UNLOCK_FOR_READ_SCRIPT_SOURCE, Boolean.class);
         maintainForReadScript = redisExecutor.encodeScript(MAINTAIN_FOR_READ_SCRIPT_SOURCE, Boolean.class);

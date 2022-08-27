@@ -53,6 +53,7 @@ public class RedisSemaphoreServer {
         this.redisExecutor = redisExecutor;
         this.liveTime = liveTime;
         this.maintainExecutor = maintainExecutor;
+
         updatePermitsScript = redisExecutor.encodeScript(UPDATE_PERMITS_SCRIPT_SOURCE, Long.class);
         maintainScript = redisExecutor.encodeScript(MAINTAIN_SCRIPT_SOURCE, Boolean.class);
     }
