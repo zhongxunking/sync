@@ -32,6 +32,10 @@ public class SyncProperties {
      * 是否启用Sync的key
      */
     public static final String ENABLE_KEY = "ant.sync.enable";
+    /**
+     * key转换器的bean名称
+     */
+    public static final String KEY_CONVERTER_BEAN_NAME = "org.antframework.sync.keyConverter";
 
     /**
      * 选填：是否启用Sync（默认启用）

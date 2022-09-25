@@ -9,6 +9,7 @@
 package org.antframework.sync.boot;
 
 import org.antframework.sync.SyncContext;
+import org.antframework.sync.common.DefaultKeyConverter;
 import org.antframework.sync.common.DefaultKeyGenerator;
 import org.antframework.sync.extension.Server;
 import org.antframework.sync.extension.local.LocalServer;
@@ -18,6 +19,8 @@ import org.antframework.sync.extension.redis.extension.springdataredis.SpringDat
 import org.antframework.sync.lock.annotation.support.LockAop;
 import org.antframework.sync.semaphore.annotation.support.SemaphoreAop;
 import org.apache.commons.lang3.StringUtils;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
@@ -64,8 +67,15 @@ public class SyncAutoConfiguration {
     public static class SyncContextConfiguration {
         // Sync上下文
         @Bean(name = "org.antframework.sync.SyncContext")
-        public SyncContext syncContext(Server server, SyncProperties properties) {
-            return new SyncContext(server, properties.getMaxWaitTime());
+        public SyncContext syncContext(@Qualifier(SyncProperties.KEY_CONVERTER_BEAN_NAME) Function<Object, String> keyConverter, Server server, SyncProperties properties) {
+            return new SyncContext(keyConverter, server, properties.getMaxWaitTime());
+        }
+
+        // key转换器
+        @Bean(name = SyncProperties.KEY_CONVERTER_BEAN_NAME)
+        @ConditionalOnBean(name = SyncProperties.KEY_CONVERTER_BEAN_NAME)
+        public Function<Object, String> keyConverter() {
+            return new DefaultKeyConverter();
         }
 
         /**
