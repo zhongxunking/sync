@@ -76,7 +76,7 @@ public class SyncAutoConfiguration {
         // key转换器
         @Bean(name = SyncProperties.KEY_CONVERTER_BEAN_NAME)
         @ConditionalOnMissingBean(name = SyncProperties.KEY_CONVERTER_BEAN_NAME)
-        public Function<Object, String> keyConverter() {
+        public DefaultKeyConverter keyConverter() {
             return new DefaultKeyConverter();
         }
 
@@ -94,7 +94,7 @@ public class SyncAutoConfiguration {
             public static class LocalServerConfiguration {
                 // server
                 @Bean(name = "org.antframework.sync.extension.Server")
-                public Server server() {
+                public LocalServer server() {
                     return new LocalServer();
                 }
             }
@@ -107,9 +107,9 @@ public class SyncAutoConfiguration {
             public static class RedisServerConfiguration {
                 // server
                 @Bean(name = "org.antframework.sync.extension.Server")
-                public Server server(@Qualifier(SyncProperties.KEY_GENERATOR_BEAN_NAME) BiFunction<Server.SyncType, String, String> keyGenerator,
-                                     RedisExecutor redisExecutor,
-                                     SyncProperties properties) {
+                public RedisServer server(@Qualifier(SyncProperties.KEY_GENERATOR_BEAN_NAME) BiFunction<Server.SyncType, String, String> keyGenerator,
+                                          RedisExecutor redisExecutor,
+                                          SyncProperties properties) {
                     return new RedisServer(
                             keyGenerator,
                             redisExecutor,
@@ -119,7 +119,7 @@ public class SyncAutoConfiguration {
                 // key生成器
                 @Bean(name = SyncProperties.KEY_GENERATOR_BEAN_NAME)
                 @ConditionalOnMissingBean(name = SyncProperties.KEY_GENERATOR_BEAN_NAME)
-                public BiFunction<Server.SyncType, String, String> keyGenerator(SyncProperties properties, Environment environment) {
+                public DefaultKeyGenerator keyGenerator(SyncProperties properties, Environment environment) {
                     return new DefaultKeyGenerator(computeNamespace(properties, environment));
                 }
 
@@ -143,7 +143,7 @@ public class SyncAutoConfiguration {
                 public static class RedisExecutorConfiguration {
                     // redis执行器（默认使用spring-data-redis）
                     @Bean(name = "org.antframework.sync.extension.redis.extension.RedisExecutor")
-                    public RedisExecutor redisExecutor(RedisConnectionFactory redisConnectionFactory) {
+                    public SpringDataRedisExecutor redisExecutor(RedisConnectionFactory redisConnectionFactory) {
                         return new SpringDataRedisExecutor(redisConnectionFactory);
                     }
                 }
