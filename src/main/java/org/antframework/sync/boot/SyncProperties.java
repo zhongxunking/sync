@@ -36,6 +36,10 @@ public class SyncProperties {
      * key转换器的bean名称
      */
     public static final String KEY_CONVERTER_BEAN_NAME = "org.antframework.sync.keyConverter";
+    /**
+     * key生成器的bean名称
+     */
+    public static final String KEY_GENERATOR_BEAN_NAME = "org.antframework.sync.keyGenerator";
 
     /**
      * 选填：是否启用Sync（默认启用）
