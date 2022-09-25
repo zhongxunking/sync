@@ -35,7 +35,7 @@ public class RedisListenerContainer {
                 Runtime.getRuntime().availableProcessors() * 2,
                 5,
                 TimeUnit.SECONDS,
-                new ArrayBlockingQueue<>(1024),
+                new ArrayBlockingQueue<>(8192),
                 new ThreadPoolExecutor.DiscardOldestPolicy()));
         this.container.afterPropertiesSet();
         this.container.start();
