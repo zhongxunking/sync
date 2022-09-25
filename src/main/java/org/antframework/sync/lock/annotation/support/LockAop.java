@@ -1,4 +1,4 @@
-/* 
+/*
  * 作者：钟勋 (email:zhongxunking@163.com)
  */
 
@@ -84,7 +84,7 @@ public class LockAop implements Ordered {
                          String conditionExpression,
                          String keyExpression,
                          long timeout,
-                         Function<String, Lock> lockFunction,
+                         Function<Object, Lock> lockFunction,
                          Object annotation) throws Throwable {
         // 准备数据
         Class<?> targetClass = AopProxyUtils.ultimateTargetClass(pjp.getThis());
@@ -104,11 +104,8 @@ public class LockAop implements Ordered {
         }
         // 计算key
         Object key = evaluator.evalKey(keyExpression, evalContext, methodKey);
-        if (key == null) {
-            throw new IllegalArgumentException(String.format("key不能为null（key表达式可能有错误）：method=%s,锁注解=%s", method, annotation));
-        }
         // 获取锁
-        Lock lock = lockFunction.apply(key.toString());
+        Lock lock = lockFunction.apply(key);
         if (timeout < 0) {
             // 无限等待加锁
             lock.lock();
