@@ -1,4 +1,4 @@
-/* 
+/*
  * 作者：钟勋 (email:zhongxunking@163.com)
  */
 
@@ -13,25 +13,29 @@ import org.springframework.data.redis.serializer.SerializationException;
 import org.springframework.lang.Nullable;
 
 import java.nio.charset.StandardCharsets;
+import java.util.Arrays;
 
 /**
- * eval命令redis序列化器
+ * eval命令args参数的redis序列化器
  */
-public class EvalRedisSerializer implements RedisSerializer<Object> {
+public final class EvalArgsRedisSerializer implements RedisSerializer<Object> {
+    /**
+     * 实例
+     */
+    public static final EvalArgsRedisSerializer INSTANCE = new EvalArgsRedisSerializer();
+
+    private EvalArgsRedisSerializer() {
+    }
+
     @Override
     public byte[] serialize(@Nullable Object o) throws SerializationException {
         if (o == null) {
             return null;
         }
-
-        byte[] bytes;
         if (o instanceof byte[]) {
-            bytes = (byte[]) o;
-        } else {
-            bytes = o.toString().getBytes(StandardCharsets.UTF_8);
+            return Arrays.copyOf((byte[]) o, ((byte[]) o).length);
         }
-
-        return bytes;
+        return o.toString().getBytes(StandardCharsets.UTF_8);
     }
 
     @Override

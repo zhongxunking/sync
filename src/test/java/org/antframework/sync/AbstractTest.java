@@ -1,4 +1,4 @@
-/* 
+/*
  * 作者：钟勋 (email:zhongxunking@163.com)
  */
 
@@ -8,6 +8,7 @@
  */
 package org.antframework.sync;
 
+import org.antframework.sync.common.DefaultKeyConverter;
 import org.antframework.sync.extension.local.LocalServer;
 
 import java.util.concurrent.ArrayBlockingQueue;
@@ -26,7 +27,7 @@ public abstract class AbstractTest {
     /**
      * Sync上下文
      */
-    protected final SyncContext syncContext = new SyncContext(new LocalServer(), 10 * 1000);
+    protected final SyncContext syncContext = new SyncContext(new DefaultKeyConverter(), new LocalServer(), 10 * 1000);
     /**
      * 线程池
      */

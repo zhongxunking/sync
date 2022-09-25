@@ -1,4 +1,4 @@
-/* 
+/*
  * 作者：钟勋 (email:zhongxunking@163.com)
  */
 
@@ -15,16 +15,24 @@ import java.util.List;
  */
 public interface RedisExecutor {
     /**
+     * 编码脚本
+     *
+     * @param script     脚本文本
+     * @param resultType 返回值类型
+     * @return 编码后的脚本
+     */
+    Object encodeScript(String script, Class<?> resultType);
+
+    /**
      * 执行脚本
      *
-     * @param script     脚本
-     * @param keys       脚本中的KEYS
-     * @param args       脚本中的ARGV
-     * @param resultType 返回值类型
-     * @param <T>        返回值类型
+     * @param encodedScript 编码后的脚本
+     * @param keys          脚本中的KEYS
+     * @param args          脚本中的ARGV
+     * @param <T>           返回值类型
      * @return 脚本返回值
      */
-    <T> T eval(String script, List<Object> keys, List<Object> args, Class<T> resultType);
+    <T> T eval(Object encodedScript, List<String> keys, List<Object> args);
 
     /**
      * 新增消息监听器

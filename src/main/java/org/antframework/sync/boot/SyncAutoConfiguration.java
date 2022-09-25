@@ -1,4 +1,4 @@
-/* 
+/*
  * 作者：钟勋 (email:zhongxunking@163.com)
  */
 
@@ -9,6 +9,8 @@
 package org.antframework.sync.boot;
 
 import org.antframework.sync.SyncContext;
+import org.antframework.sync.common.DefaultKeyConverter;
+import org.antframework.sync.common.DefaultKeyGenerator;
 import org.antframework.sync.extension.Server;
 import org.antframework.sync.extension.local.LocalServer;
 import org.antframework.sync.extension.redis.RedisServer;
@@ -16,20 +18,25 @@ import org.antframework.sync.extension.redis.extension.RedisExecutor;
 import org.antframework.sync.extension.redis.extension.springdataredis.SpringDataRedisExecutor;
 import org.antframework.sync.lock.annotation.support.LockAop;
 import org.antframework.sync.semaphore.annotation.support.SemaphoreAop;
+import org.apache.commons.lang3.StringUtils;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.EnableAspectJAutoProxy;
+import org.springframework.core.env.Environment;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
 
+import java.util.function.BiFunction;
 import java.util.function.Function;
 
 /**
  * Sync自动配置
  */
 @Configuration
+@ConditionalOnProperty(name = SyncProperties.ENABLE_KEY, havingValue = "true", matchIfMissing = true)
 @EnableAspectJAutoProxy
 @EnableConfigurationProperties(SyncProperties.class)
 public class SyncAutoConfiguration {
@@ -60,8 +67,17 @@ public class SyncAutoConfiguration {
     public static class SyncContextConfiguration {
         // Sync上下文
         @Bean(name = "org.antframework.sync.SyncContext")
-        public SyncContext syncContext(Server server, SyncProperties properties) {
-            return new SyncContext(server, properties.getMaxWaitTime());
+        public SyncContext syncContext(@Qualifier(SyncProperties.KEY_CONVERTER_BEAN_NAME) Function<Object, String> keyConverter,
+                                       Server server,
+                                       SyncProperties properties) {
+            return new SyncContext(keyConverter, server, properties.getMaxWaitTime());
+        }
+
+        // key转换器
+        @Bean(name = SyncProperties.KEY_CONVERTER_BEAN_NAME)
+        @ConditionalOnMissingBean(name = SyncProperties.KEY_CONVERTER_BEAN_NAME)
+        public DefaultKeyConverter keyConverter() {
+            return new DefaultKeyConverter();
         }
 
         /**
@@ -78,7 +94,7 @@ public class SyncAutoConfiguration {
             public static class LocalServerConfiguration {
                 // server
                 @Bean(name = "org.antframework.sync.extension.Server")
-                public Server server() {
+                public LocalServer server() {
                     return new LocalServer();
                 }
             }
@@ -91,8 +107,32 @@ public class SyncAutoConfiguration {
             public static class RedisServerConfiguration {
                 // server
                 @Bean(name = "org.antframework.sync.extension.Server")
-                public Server server(RedisExecutor redisExecutor, SyncProperties properties) {
-                    return new RedisServer(redisExecutor, properties.getRedis().getLiveTime());
+                public RedisServer server(@Qualifier(SyncProperties.KEY_GENERATOR_BEAN_NAME) BiFunction<Server.SyncType, String, String> keyGenerator,
+                                          RedisExecutor redisExecutor,
+                                          SyncProperties properties) {
+                    return new RedisServer(
+                            keyGenerator,
+                            redisExecutor,
+                            properties.getRedis().getLiveTime());
+                }
+
+                // key生成器
+                @Bean(name = SyncProperties.KEY_GENERATOR_BEAN_NAME)
+                @ConditionalOnMissingBean(name = SyncProperties.KEY_GENERATOR_BEAN_NAME)
+                public DefaultKeyGenerator keyGenerator(SyncProperties properties, Environment environment) {
+                    return new DefaultKeyGenerator(computeNamespace(properties, environment));
+                }
+
+                // 计算命名空间
+                private String computeNamespace(SyncProperties properties, Environment environment) {
+                    String namespace = properties.getNamespace();
+                    if (StringUtils.isBlank(namespace)) {
+                        namespace = environment.getProperty("spring.application.name");
+                        if (StringUtils.isBlank(namespace)) {
+                            throw new IllegalArgumentException("未配置Sync命名空间，可通过ant.sync.namespace或者spring.application.name配置");
+                        }
+                    }
+                    return namespace;
                 }
 
                 /**
@@ -103,7 +143,7 @@ public class SyncAutoConfiguration {
                 public static class RedisExecutorConfiguration {
                     // redis执行器（默认使用spring-data-redis）
                     @Bean(name = "org.antframework.sync.extension.redis.extension.RedisExecutor")
-                    public RedisExecutor redisExecutor(RedisConnectionFactory redisConnectionFactory) {
+                    public SpringDataRedisExecutor redisExecutor(RedisConnectionFactory redisConnectionFactory) {
                         return new SpringDataRedisExecutor(redisConnectionFactory);
                     }
                 }

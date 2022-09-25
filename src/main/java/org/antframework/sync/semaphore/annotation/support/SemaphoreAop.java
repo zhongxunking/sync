@@ -1,4 +1,4 @@
-/* 
+/*
  * 作者：钟勋 (email:zhongxunking@163.com)
  */
 
@@ -80,11 +80,8 @@ public class SemaphoreAop implements Ordered {
         }
         // 计算key
         Object key = evaluator.evalKey(keyExpression, evalContext, methodKey);
-        if (key == null) {
-            throw new IllegalArgumentException(String.format("key不能为null（key表达式可能有错误）：method=%s,信号量注解=%s", method, annotation));
-        }
         // 获取许可
-        Semaphore semaphore = semaphoreContext.getSemaphore(key.toString(), totalPermitsFunction.apply(key.toString()));
+        Semaphore semaphore = semaphoreContext.getSemaphore(key, totalPermitsFunction.apply(key.toString()));
         if (timeout < 0) {
             semaphore.acquire(permits);
         } else {
