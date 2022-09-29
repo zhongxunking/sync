@@ -42,7 +42,7 @@ public class SyncProperties {
     public static final String KEY_GENERATOR_BEAN_NAME = "org.antframework.sync.keyGenerator";
 
     /**
-     * 选填：是否启用Sync（默认启用）
+     * 选填：是否启用Sync（true为启用，false为不启用；默认启用）
      */
     private boolean enable = true;
     /**
@@ -60,7 +60,7 @@ public class SyncProperties {
     @NotNull
     private ServerType serverType = ServerType.REDIS;
     /**
-     * redis配置
+     * Redis配置
      */
     @NotNull
     @Valid
@@ -72,7 +72,7 @@ public class SyncProperties {
     @Valid
     private Semaphore semaphore = new Semaphore();
     /**
-     * 选填：@Lock、@ReadLock、@WriteLock、@Semaphore切面执行的优先级（默认比@Transactional先执行）
+     * 选填：@Lock、@ReadLock、@WriteLock、@Semaphore的AOP执行的优先级（默认为Ordered.LOWEST_PRECEDENCE - 10，默认比@Transactional先执行）
      */
     private int aopOrder = Ordered.LOWEST_PRECEDENCE - 10;
 
@@ -91,13 +91,13 @@ public class SyncProperties {
     }
 
     /**
-     * 基于redis实现的服务端配置
+     * Redis配置
      */
     @Getter
     @Setter
     public static class Redis {
         /**
-         * 选填：发生异常时redis中数据的存活时长（毫秒，默认为10分钟）
+         * 选填：发生异常时Redis中数据的存活时长（毫秒，默认为10分钟）
          */
         @Min(1)
         private long liveTime = 10 * 60 * 1000;
