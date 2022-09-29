@@ -1,70 +1,61 @@
-# sync
+# Sync
+
 1. 简介
+> Sync是一款分布式场景下基于Redis的安全高效的线程同步组件，提供分布式可重入互斥锁、分布式可重入读写锁、分布式信号量。提供相应注解，使用简单，可与spring-boot无缝集成。
 
-> sync提供分布式场景下基于redis的一些同步机制，目前已提供：分布式可重入互斥锁、分布式可重入读写锁、分布式信号量。提供相应注解，使用简单，可与spring-boot无缝集成。
-
-> 本框架已经上传到[maven中央库](https://search.maven.org/#search%7Cga%7C1%7Corg.antframework.sync)
+> 本组件已经上传到[maven中央库](https://search.maven.org/#search%7Cga%7C1%7Corg.antframework.sync)
 
 2. 环境要求
-
-> * jdk1.8
+> * JDK1.8及以上
 
 3. 技术支持
 
 > 欢迎加我微信（zhong_xun_）入群交流。<br/>
-<img src="https://note.youdao.com/yws/api/personal/file/WEBbca9e0a9a6e1ea2d9ab9def1cc90f839?method=download&shareKey=00e90849ae0d3b5cb8ed7dd12bc6842e" width=150 />
+<img src="https://note.youdao.com/yws/api/personal/file/WEB6b849e698db2a635b43eba5bc949ce1c?method=download&shareKey=27623320b5ca82cbf768b61130c81de0" width=150 />
 
+## 1. 将Sync引入进你的系统
+引入Sync很简单，按照以下操作即可。
 
-## 1. 将sync引入进你的系统
-引入sync很简单，按照以下操作即可。
-
-### 1.1 引入依赖
+### 1.1 引入Maven依赖
+Sync支持SpringBoot v2.x，也支持SpringBoot v1.x
 ```xml
 <dependency>
     <groupId>org.antframework.sync</groupId>
     <artifactId>sync</artifactId>
     <version>1.1.0</version>
 </dependency>
-```
-
-### 1.2 配置
-sync提供对spring-boot和非spring-boot项目两种配置方式。
-
-### 1.2.1 spring-boot项目
-如果你的应用是spring-boot项目，则按照以下进行配置。
-
-- 引入spring-boot-starter-data-redis
-```xml
 <dependency>
     <groupId>org.springframework.boot</groupId>
     <artifactId>spring-boot-starter-data-redis</artifactId>
+    <version>${spring-boot版本}</version>
 </dependency>
 ```
 
-- 配置redis和sync
+### 1.2 配置
+在application.properties或application.yaml中配置Redis和Sync
 ```properties
-# 必填：配置redis地址
+# 必填：配置Redis地址
 spring.redis.host=127.0.0.1
 spring.redis.port=6379
 
-# 选填：服务端类型（默认为redis）（sync还提供local模式，可以不依赖redis，这种模式只对单个应用实例起效果，无法用在分布式场景）
-ant.sync.server-type=redis
-# 选填：发生异常时redis中数据的存活时长（毫秒，默认为10分钟）
-ant.sync.redis.live-time=600000
-# 选填：@Lock、@ReadLock、@WriteLock、@Semaphore切面执行的优先级（默认比@Transactional先执行）
-ant.sync.aop-order=2147483637
-# 选填：@Semaphore注解使用的许可总数，通过ant.sync.semaphore.key-total-permits.前缀可分别对每个信号量进行配置
-ant.sync.semaphore.key-total-permits.trade-abc=100
-ant.sync.semaphore.key-total-permits.trade-edf=200
-```
+# 必填：命名空间（也可以通过ant.sync.namespace配置）
+spring.application.name=customer    #这里使用customer（会员系统）作为举例
 
-### 1.2.2 非spring-boot项目
-如果你的应用是非是spring-boot项目，则按照以下进行配置。
-```java
-// 初始化SyncContext（redisConnectionFactory是org.springframework.data.redis.connection.RedisConnectionFactory的一个是实例）
-SyncContext syncContext = new SyncContext(new RedisServer(new SpringDataRedisExecutor(redisConnectionFactory), 10 * 60 * 1000), 10 * 1000);
+# 以下配置均是选填配置，使用方一般使用默认配置即可，无需自定义配置
+# 选填：是否启用Sync（true为启用，false为不启用；默认启用）
+ant.sync.enable=true
+# 选填：等待同步消息的最长时间（毫秒，默认为10秒）
+ant.sync.max-wait-time=10000
+# 选填：服务端类型（默认为redis）（sync还提供local模式，可以不依赖Redis，这种模式只对单个应用实例起效果，无法用在分布式场景）
+ant.sync.server-type=redis
+# 选填：发生异常时Redis中数据的存活时长（毫秒，默认为10分钟）
+ant.sync.redis.live-time=600000
+# 选填：@Semaphore注解使用的许可总数，通过ant.sync.semaphore.key-total-permits.${key}=${许可总数}的形式对key的许可总数进行配置
+ant.sync.semaphore.key-total-permits.trade-123=100
+ant.sync.semaphore.key-total-permits.trade-456=200
+# 选填：@Lock、@ReadLock、@WriteLock、@Semaphore的AOP执行的优先级（默认为Ordered.LOWEST_PRECEDENCE - 10，默认比@Transactional先执行）
+ant.sync.aop-order=2147483637
 ```
-如果非spring-boot项目想使用注解@Lock、@ReadLock、@WriteLock、@Semaphore，则还需要配置org.antframework.sync.lock.annotation.support.LockAop和org.antframework.sync.semaphore.annotation.support.SemaphoreAop，具体配置方式请参考org.antframework.sync.boot.SyncAutoConfiguration。
 
 ## 2. 使用sync
 提供两种使用sync方式：
@@ -72,13 +63,11 @@ SyncContext syncContext = new SyncContext(new RedisServer(new SpringDataRedisExe
 - 通过注解使用
 
 ### 2.1 通过SyncContext使用
-使用sync前需先获取SyncContext。
-- spring-boot项目获取SyncContext：
+使用sync前需先获取SyncContext：
 ```java
 @Autowired
 private SyncContext syncContext;
 ```
-- 非spring-boot项目直接使用自己初始化的SyncContext
 
 #### 2.1.1 分布式可重入互斥锁
 ```java
@@ -119,7 +108,7 @@ try {
 #### 2.1.3 分布式信号量
 ```java
 // 传入信号量的标识（比如：trade-abc）就可获取对应的信号量，同时需指定分布式环境下总的可用许可数（比如：100）
-Semaphore semaphore=syncContext.getSemaphoreContext().getSemaphore("trade-abc", 100);
+Semaphore semaphore=syncContext.getSemaphoreContext().getSemaphore("trade-123", 100);
 semaphore.acquire(5);       // 获取5个许可
 try {
     // TODO 具体业务逻辑
@@ -129,8 +118,6 @@ try {
 ```
 
 ### 2.2 通过注解使用
-- 如果是spring-boot项目，则可以直接使用注解，无需额外配置
-- 如果是非spring-boot项目，则需要配置org.antframework.sync.lock.annotation.support.LockAop和org.antframework.sync.semaphore.annotation.support.SemaphoreAop，具体配置方式请参考org.antframework.sync.boot.SyncAutoConfiguration
 
 #### 2.2.1 分布式可重入互斥锁
 ```java
@@ -178,6 +165,6 @@ public class TradeService {
 ```
 
 ## 3. 扩展性
-sync本身提供基于redis和local两种实现，同时具备灵活的扩展性。如果你想基于zookeeper来实现，则可以实现org.antframework.sync.extension.Server接口；如果你想基于redis实现，但又不想使用spring-data-redis提供的org.springframework.data.redis.connection.RedisConnectionFactory，则可以实现org.antframework.sync.extension.redis.extension.RedisExecutor接口。
+Sync本身提供基于Redis和Local两种实现，同时具备灵活的扩展性。如果你想基于Zookeeper来实现，则可以实现org.antframework.sync.extension.Server接口；如果你想基于Redis实现，但又不想使用spring-data-redis提供的org.springframework.data.redis.connection.RedisConnectionFactory，则可以实现org.antframework.sync.extension.redis.extension.RedisExecutor接口。
 
 扩展时可以参考：org.antframework.sync.extension.redis.RedisServer、org.antframework.sync.extension.local.LocalServer、org.antframework.sync.extension.redis.extension.springdataredis.SpringDataRedisExecutor
