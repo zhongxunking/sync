@@ -22,7 +22,7 @@ Sync支持SpringBoot v2.x，也支持SpringBoot v1.x
 <dependency>
     <groupId>org.antframework.sync</groupId>
     <artifactId>sync</artifactId>
-    <version>1.1.0</version>
+    <version>1.2.0</version>
 </dependency>
 <dependency>
     <groupId>org.springframework.boot</groupId>
