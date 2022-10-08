@@ -3,7 +3,7 @@
 1. 简介
 > Sync是一款分布式场景下基于Redis的安全高效的线程同步组件，提供分布式可重入互斥锁、分布式可重入读写锁、分布式信号量。提供相应注解，使用简单，可与spring-boot无缝集成。
 
-> 本组件已经上传到[maven中央库](https://search.maven.org/search?q=org.antframework.sync)
+> 本组件已经上传到[Maven中央库](https://search.maven.org/search?q=org.antframework.sync)
 
 2. 环境要求
 > * JDK1.8及以上
@@ -14,7 +14,7 @@
 <img src="https://note.youdao.com/yws/api/personal/file/WEB6b849e698db2a635b43eba5bc949ce1c?method=download&shareKey=27623320b5ca82cbf768b61130c81de0" width=150 />
 
 ## 1. 将Sync引入进你的系统
-引入Sync很简单，按照以下操作即可。
+通过引入Maven依赖和进行少量配置即可将Sync引入进你的系统。
 
 ### 1.1 引入Maven依赖
 Sync支持SpringBoot v2.x，也支持SpringBoot v1.x
